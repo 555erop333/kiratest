@@ -65,3 +65,4 @@ npm run validate
 - `questionBank.js`
 
 Папка `scripts` нужна только для локальной проверки и на проде не обязательна.
+"# kiratest" 

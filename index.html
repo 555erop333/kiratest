@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Красивый сайт с тестами по английскому языку для 4 класса: 9 разделов и 900 вопросов."
+    />
+    <title>Sunny English Garden</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;500;700&family=Nunito:wght@500;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <div class="page-shell__glow page-shell__glow--one" aria-hidden="true"></div>
+      <div class="page-shell__glow page-shell__glow--two" aria-hidden="true"></div>
+      <div class="page-shell__glow page-shell__glow--three" aria-hidden="true"></div>
+
+      <div class="sparkles" aria-hidden="true">
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+
+      <header class="hero">
+        <div class="hero__copy">
+          <p class="eyebrow">9 разделов • 900 вопросов • английский для 4 класса</p>
+          <h1>Sunny English Garden</h1>
+          <p class="hero__lead">
+            Нажимай на тему, отвечай на вопросы по одному, включай перевод и собирай
+            очки. После каждого ответа сайт сразу покажет маленькое пояснение.
+          </p>
+          <div class="hero__actions">
+            <a
+              class="primary-button"
+              href="#menuView"
+              data-action="scroll-sections"
+            >
+              Выбрать раздел
+            </a>
+            <p class="hero__note">
+              Результаты сохраняются в браузере, поэтому можно возвращаться к любимым
+              темам.
+            </p>
+          </div>
+        </div>
+
+        <div class="hero__summary" id="heroSummary"></div>
+      </header>
+
+      <main class="main-layout">
+        <section class="menu-view" id="menuView">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Меню разделов</p>
+              <h2>Выбирай тренировку</h2>
+            </div>
+            <p class="section-heading__text">
+              В каждом разделе по 100 вопросов. Сначала показывается английское
+              предложение, а перевод можно открыть кнопкой.
+            </p>
+          </div>
+
+          <div class="section-grid" id="sectionGrid"></div>
+        </section>
+
+        <section class="quiz-view hidden" id="quizView" aria-live="polite"></section>
+      </main>
+
+      <footer class="site-signature">by weather report</footer>
+    </div>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

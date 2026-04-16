@@ -1,9 +1,0 @@
-{
-  "name": "kira-english-quiz",
-  "version": "1.0.0",
-  "private": true,
-  "type": "module",
-  "scripts": {
-    "validate": "node scripts/validate-question-bank.mjs"
-  }
-}

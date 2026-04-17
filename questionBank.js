@@ -135,13 +135,51 @@ const pluralSubjects = [
   { en: "My parents", ru: "Мои родители", be: "are", do: "do", negativeDo: "don't", negativeBe: "aren't" },
 ];
 
+const studySingularSubjects = singularSubjects.filter(
+  ({ en }) => en !== "The cat" && en !== "The dog"
+);
+
+const studyPluralSubjects = pluralSubjects;
+
+const getRuFutureAuxiliary = (subject) => {
+  if (subject.en === "I") {
+    return "буду";
+  }
+
+  if (subject.en === "We") {
+    return "будем";
+  }
+
+  if (subject.be === "are") {
+    return "будут";
+  }
+
+  return "будет";
+};
+
+const getRuNegativeFutureAuxiliary = (subject) => {
+  if (subject.en === "I") {
+    return "не буду";
+  }
+
+  if (subject.en === "We") {
+    return "не будем";
+  }
+
+  if (subject.be === "are") {
+    return "не будут";
+  }
+
+  return "не будет";
+};
+
 const timeTail = [
   { en: "every day", ru: "каждый день" },
   { en: "after school", ru: "после школы" },
   { en: "in the evening", ru: "вечером" },
   { en: "on Sundays", ru: "по воскресеньям" },
   { en: "before breakfast", ru: "до завтрака" },
-  { en: "with a smile", ru: "с улыбкой" },
+  { en: "after dinner", ru: "после ужина" },
 ];
 
 const futureTail = [
@@ -163,31 +201,30 @@ const pastTail = [
 ];
 
 const activityPhrases = [
-  { base: "play football", third: "plays football", ing: "playing football", past: "played football", ruBase: "играть в футбол", ruThird: "играет в футбол", ruIng: "играет в футбол сейчас", ruPast: "играл(а) в футбол" },
-  { base: "read comics", third: "reads comics", ing: "reading comics", past: "read comics", ruBase: "читать комиксы", ruThird: "читает комиксы", ruIng: "читает комиксы сейчас", ruPast: "читал(а) комиксы" },
-  { base: "do homework", third: "does homework", ing: "doing homework", past: "did homework", ruBase: "делать домашнюю работу", ruThird: "делает домашнюю работу", ruIng: "делает домашнюю работу сейчас", ruPast: "сделал(а) домашнюю работу" },
-  { base: "make breakfast", third: "makes breakfast", ing: "making breakfast", past: "made breakfast", ruBase: "готовить завтрак", ruThird: "готовит завтрак", ruIng: "готовит завтрак сейчас", ruPast: "приготовил(а) завтрак" },
-  { base: "ride a bike", third: "rides a bike", ing: "riding a bike", past: "rode a bike", ruBase: "кататься на велосипеде", ruThird: "катается на велосипеде", ruIng: "катается на велосипеде сейчас", ruPast: "катался(ась) на велосипеде" },
-  { base: "swim in the lake", third: "swims in the lake", ing: "swimming in the lake", past: "swam in the lake", ruBase: "плавать в озере", ruThird: "плавает в озере", ruIng: "плавает в озере сейчас", ruPast: "плавал(а) в озере" },
-  { base: "visit grandma", third: "visits grandma", ing: "visiting grandma", past: "visited grandma", ruBase: "навещать бабушку", ruThird: "навещает бабушку", ruIng: "навещает бабушку сейчас", ruPast: "навестил(а) бабушку" },
-  { base: "feed the cat", third: "feeds the cat", ing: "feeding the cat", past: "fed the cat", ruBase: "кормить кота", ruThird: "кормит кота", ruIng: "кормит кота сейчас", ruPast: "покормил(а) кота" },
-  { base: "clean the room", third: "cleans the room", ing: "cleaning the room", past: "cleaned the room", ruBase: "убирать комнату", ruThird: "убирает комнату", ruIng: "убирает комнату сейчас", ruPast: "убрал(а) комнату" },
-  { base: "watch cartoons", third: "watches cartoons", ing: "watching cartoons", past: "watched cartoons", ruBase: "смотреть мультфильмы", ruThird: "смотрит мультфильмы", ruIng: "смотрит мультфильмы сейчас", ruPast: "смотрел(а) мультфильмы" },
-  { base: "draw a rainbow", third: "draws a rainbow", ing: "drawing a rainbow", past: "drew a rainbow", ruBase: "рисовать радугу", ruThird: "рисует радугу", ruIng: "рисует радугу сейчас", ruPast: "нарисовал(а) радугу" },
-  { base: "build a tent", third: "builds a tent", ing: "building a tent", past: "built a tent", ruBase: "ставить палатку", ruThird: "ставит палатку", ruIng: "ставит палатку сейчас", ruPast: "поставил(а) палатку" },
-  { base: "pack a sleeping bag", third: "packs a sleeping bag", ing: "packing a sleeping bag", past: "packed a sleeping bag", ruBase: "собирать спальный мешок", ruThird: "собирает спальный мешок", ruIng: "собирает спальный мешок сейчас", ruPast: "собрал(а) спальный мешок" },
-  { base: "wear boots", third: "wears boots", ing: "wearing boots", past: "wore boots", ruBase: "носить ботинки", ruThird: "носит ботинки", ruIng: "носит ботинки сейчас", ruPast: "надел(а) ботинки" },
-  { base: "take flippers", third: "takes flippers", ing: "taking flippers", past: "took flippers", ruBase: "брать ласты", ruThird: "берёт ласты", ruIng: "берёт ласты сейчас", ruPast: "взял(а) ласты" },
-  { base: "help Mom", third: "helps Mom", ing: "helping Mom", past: "helped Mom", ruBase: "помогать маме", ruThird: "помогает маме", ruIng: "помогает маме сейчас", ruPast: "помог(ла) маме" },
-  { base: "jump over a puddle", third: "jumps over a puddle", ing: "jumping over a puddle", past: "jumped over a puddle", ruBase: "перепрыгивать лужу", ruThird: "перепрыгивает лужу", ruIng: "перепрыгивает лужу сейчас", ruPast: "перепрыгнул(а) лужу" },
-  { base: "open the window", third: "opens the window", ing: "opening the window", past: "opened the window", ruBase: "открывать окно", ruThird: "открывает окно", ruIng: "открывает окно сейчас", ruPast: "открыл(а) окно" },
-  { base: "water the flowers", third: "waters the flowers", ing: "watering the flowers", past: "watered the flowers", ruBase: "поливать цветы", ruThird: "поливает цветы", ruIng: "поливает цветы сейчас", ruPast: "полил(а) цветы" },
-  { base: "sing a song", third: "sings a song", ing: "singing a song", past: "sang a song", ruBase: "петь песню", ruThird: "поёт песню", ruIng: "поёт песню сейчас", ruPast: "спел(а) песню" },
-  { base: "buy apples", third: "buys apples", ing: "buying apples", past: "bought apples", ruBase: "покупать яблоки", ruThird: "покупает яблоки", ruIng: "покупает яблоки сейчас", ruPast: "купил(а) яблоки" },
-  { base: "write a letter", third: "writes a letter", ing: "writing a letter", past: "wrote a letter", ruBase: "писать письмо", ruThird: "пишет письмо", ruIng: "пишет письмо сейчас", ruPast: "написал(а) письмо" },
-  { base: "have a picnic", third: "has a picnic", ing: "having a picnic", past: "had a picnic", ruBase: "устраивать пикник", ruThird: "устраивает пикник", ruIng: "устраивает пикник сейчас", ruPast: "устроил(а) пикник" },
-  { base: "run in the park", third: "runs in the park", ing: "running in the park", past: "ran in the park", ruBase: "бегать в парке", ruThird: "бегает в парке", ruIng: "бегает в парке сейчас", ruPast: "бегал(а) в парке" },
-  { base: "see a rainbow", third: "sees a rainbow", ing: "seeing a rainbow", past: "saw a rainbow", ruBase: "видеть радугу", ruThird: "видит радугу", ruIng: "видит радугу сейчас", ruPast: "увидел(а) радугу" },
+  { base: "play football", third: "plays football", ing: "playing football", past: "played football", ruBase: "играть в футбол", ruThird: "играет в футбол", ruIng: "играет в футбол", ruPast: "играл(а) в футбол" },
+  { base: "read comics", third: "reads comics", ing: "reading comics", past: "read comics", ruBase: "читать комиксы", ruThird: "читает комиксы", ruIng: "читает комиксы", ruPast: "читал(а) комиксы" },
+  { base: "do homework", third: "does homework", ing: "doing homework", past: "did homework", ruBase: "делать домашнюю работу", ruThird: "делает домашнюю работу", ruIng: "делает домашнюю работу", ruPast: "сделал(а) домашнюю работу" },
+  { base: "make breakfast", third: "makes breakfast", ing: "making breakfast", past: "made breakfast", ruBase: "готовить завтрак", ruThird: "готовит завтрак", ruIng: "готовит завтрак", ruPast: "приготовил(а) завтрак" },
+  { base: "ride a bike", third: "rides a bike", ing: "riding a bike", past: "rode a bike", ruBase: "кататься на велосипеде", ruThird: "катается на велосипеде", ruIng: "катается на велосипеде", ruPast: "катался(ась) на велосипеде" },
+  { base: "visit grandma", third: "visits grandma", ing: "visiting grandma", past: "visited grandma", ruBase: "навещать бабушку", ruThird: "навещает бабушку", ruIng: "навещает бабушку", ruPast: "навестил(а) бабушку" },
+  { base: "feed the cat", third: "feeds the cat", ing: "feeding the cat", past: "fed the cat", ruBase: "кормить кота", ruThird: "кормит кота", ruIng: "кормит кота", ruPast: "покормил(а) кота" },
+  { base: "clean the room", third: "cleans the room", ing: "cleaning the room", past: "cleaned the room", ruBase: "убирать комнату", ruThird: "убирает комнату", ruIng: "убирает комнату", ruPast: "убрал(а) комнату" },
+  { base: "watch cartoons", third: "watches cartoons", ing: "watching cartoons", past: "watched cartoons", ruBase: "смотреть мультфильмы", ruThird: "смотрит мультфильмы", ruIng: "смотрит мультфильмы", ruPast: "смотрел(а) мультфильмы" },
+  { base: "draw a picture", third: "draws a picture", ing: "drawing a picture", past: "drew a picture", ruBase: "рисовать картинку", ruThird: "рисует картинку", ruIng: "рисует картинку", ruPast: "нарисовал(а) картинку" },
+  { base: "pack a backpack", third: "packs a backpack", ing: "packing a backpack", past: "packed a backpack", ruBase: "собирать рюкзак", ruThird: "собирает рюкзак", ruIng: "собирает рюкзак", ruPast: "собрал(а) рюкзак" },
+  { base: "wear boots", third: "wears boots", ing: "wearing boots", past: "wore boots", ruBase: "носить ботинки", ruThird: "носит ботинки", ruIng: "носит ботинки", ruPast: "надел(а) ботинки" },
+  { base: "help Mom", third: "helps Mom", ing: "helping Mom", past: "helped Mom", ruBase: "помогать маме", ruThird: "помогает маме", ruIng: "помогает маме", ruPast: "помог(ла) маме" },
+  { base: "open the window", third: "opens the window", ing: "opening the window", past: "opened the window", ruBase: "открывать окно", ruThird: "открывает окно", ruIng: "открывает окно", ruPast: "открыл(а) окно" },
+  { base: "water the flowers", third: "waters the flowers", ing: "watering the flowers", past: "watered the flowers", ruBase: "поливать цветы", ruThird: "поливает цветы", ruIng: "поливает цветы", ruPast: "полил(а) цветы" },
+  { base: "sing a song", third: "sings a song", ing: "singing a song", past: "sang a song", ruBase: "петь песню", ruThird: "поёт песню", ruIng: "поёт песню", ruPast: "спел(а) песню" },
+  { base: "buy apples", third: "buys apples", ing: "buying apples", past: "bought apples", ruBase: "покупать яблоки", ruThird: "покупает яблоки", ruIng: "покупает яблоки", ruPast: "купил(а) яблоки" },
+  { base: "write in a notebook", third: "writes in a notebook", ing: "writing in a notebook", past: "wrote in a notebook", ruBase: "писать в тетради", ruThird: "пишет в тетради", ruIng: "пишет в тетради", ruPast: "писал(а) в тетради" },
+  { base: "have lunch", third: "has lunch", ing: "having lunch", past: "had lunch", ruBase: "обедать", ruThird: "обедает", ruIng: "обедает", ruPast: "пообедал(а)" },
+  { base: "run in the park", third: "runs in the park", ing: "running in the park", past: "ran in the park", ruBase: "бегать в парке", ruThird: "бегает в парке", ruIng: "бегает в парке", ruPast: "бегал(а) в парке" },
+  { base: "wash the dishes", third: "washes the dishes", ing: "washing the dishes", past: "washed the dishes", ruBase: "мыть посуду", ruThird: "моет посуду", ruIng: "моет посуду", ruPast: "помыл(а) посуду" },
+  { base: "walk to school", third: "walks to school", ing: "walking to school", past: "walked to school", ruBase: "ходить в школу пешком", ruThird: "ходит в школу пешком", ruIng: "идёт в школу пешком", ruPast: "шёл(шла) в школу пешком" },
+  { base: "carry a bag", third: "carries a bag", ing: "carrying a bag", past: "carried a bag", ruBase: "нести сумку", ruThird: "несёт сумку", ruIng: "несёт сумку", ruPast: "нёс(несла) сумку" },
+  { base: "call grandma", third: "calls grandma", ing: "calling grandma", past: "called grandma", ruBase: "звонить бабушке", ruThird: "звонит бабушке", ruIng: "звонит бабушке", ruPast: "позвонил(а) бабушке" },
 ];
 
 const comparisonAdjectives = [
@@ -215,92 +252,216 @@ const comparisonAdjectives = [
   { base: "bad", comparative: "worse", superlative: "worst", ruBase: "плохой", ruComp: "хуже", ruSuper: "самый плохой", kind: "both", wrongComp: "badder", wrongSuper: "baddest" },
 ];
 
-const personComparisons = [
-  { leftEn: "Mia", leftRu: "Мия", rightEn: "Nina", rightRu: "Нина" },
-  { leftEn: "Max", leftRu: "Макс", rightEn: "Leo", rightRu: "Лео" },
-  { leftEn: "My brother", leftRu: "Мой брат", rightEn: "my cousin", rightRu: "мой двоюродный брат" },
-  { leftEn: "Dad", leftRu: "Папа", rightEn: "Uncle Sam", rightRu: "дядя Сэм" },
-  { leftEn: "Our teacher", leftRu: "Наша учительница", rightEn: "the new teacher", rightRu: "новая учительница" },
-  { leftEn: "Grandpa", leftRu: "Дедушка", rightEn: "Dad", rightRu: "папа" },
-  { leftEn: "The clown", leftRu: "Клоун", rightEn: "the actor", rightRu: "актёр" },
-  { leftEn: "The puppy", leftRu: "Щенок", rightEn: "the kitten", rightRu: "котёнок" },
-  { leftEn: "My sister", leftRu: "Моя сестра", rightEn: "me", rightRu: "меня" },
-  { leftEn: "The tiger", leftRu: "Тигр", rightEn: "the fox", rightRu: "лиса" },
+const comparisonContextPools = {
+  people: [
+    { leftEn: "Mia", leftRu: "Мия", rightEn: "Nina", rightRu: "Нина" },
+    { leftEn: "Max", leftRu: "Макс", rightEn: "Leo", rightRu: "Лео" },
+    { leftEn: "My brother", leftRu: "Мой брат", rightEn: "my cousin", rightRu: "мой двоюродный брат" },
+    { leftEn: "Dad", leftRu: "Папа", rightEn: "Uncle Sam", rightRu: "дядя Сэм" },
+    { leftEn: "Our teacher", leftRu: "Наша учительница", rightEn: "the new teacher", rightRu: "новая учительница" },
+    { leftEn: "Grandpa", leftRu: "Дедушка", rightEn: "Dad", rightRu: "папа" },
+    { leftEn: "The clown", leftRu: "Клоун", rightEn: "the actor", rightRu: "актёр" },
+    { leftEn: "My sister", leftRu: "Моя сестра", rightEn: "me", rightRu: "меня" },
+  ],
+  sizeThings: [
+    { leftEn: "This bike", leftRu: "Этот велосипед", rightEn: "that scooter", rightRu: "тот самокат" },
+    { leftEn: "This tent", leftRu: "Эта палатка", rightEn: "that tent", rightRu: "та палатка" },
+    { leftEn: "This sleeping bag", leftRu: "Этот спальный мешок", rightEn: "that blanket", rightRu: "то одеяло" },
+    { leftEn: "This backpack", leftRu: "Этот рюкзак", rightEn: "that bag", rightRu: "та сумка" },
+    { leftEn: "This snowball", leftRu: "Этот снежок", rightEn: "that stone", rightRu: "тот камень" },
+  ],
+  movementThings: [
+    { leftEn: "This bike", leftRu: "Этот велосипед", rightEn: "that scooter", rightRu: "тот самокат" },
+    { leftEn: "The puppy", leftRu: "Щенок", rightEn: "the kitten", rightRu: "котёнок" },
+    { leftEn: "The tiger", leftRu: "Тигр", rightEn: "the fox", rightRu: "лиса" },
+    { leftEn: "Max", leftRu: "Макс", rightEn: "Leo", rightRu: "Лео" },
+  ],
+  lightThings: [
+    { leftEn: "This lamp", leftRu: "Эта лампа", rightEn: "that candle", rightRu: "та свеча" },
+    { leftEn: "This flashlight", leftRu: "Этот фонарик", rightEn: "that lantern", rightRu: "тот фонарь" },
+    { leftEn: "This room", leftRu: "Эта комната", rightEn: "that room", rightRu: "та комната" },
+  ],
+  temperatureThings: [
+    { leftEn: "This soup", leftRu: "Этот суп", rightEn: "that tea", rightRu: "тот чай" },
+    { leftEn: "This tea", leftRu: "Этот чай", rightEn: "that juice", rightRu: "тот сок" },
+  ],
+  cleanThings: [
+    { leftEn: "This room", leftRu: "Эта комната", rightEn: "that room", rightRu: "та комната" },
+    { leftEn: "This backpack", leftRu: "Этот рюкзак", rightEn: "that bag", rightRu: "та сумка" },
+    { leftEn: "This desk", leftRu: "Эта парта", rightEn: "that desk", rightRu: "та парта" },
+  ],
+  taskThings: [
+    { leftEn: "This puzzle", leftRu: "Этот пазл", rightEn: "that task", rightRu: "то задание" },
+    { leftEn: "This test", leftRu: "Этот тест", rightEn: "that exercise", rightRu: "то упражнение" },
+    { leftEn: "This question", leftRu: "Этот вопрос", rightEn: "that question", rightRu: "тот вопрос" },
+  ],
+};
+
+const superlativeContextPools = {
+  people: [
+    { subjectEn: "Mia", subjectRu: "Мия", placeEn: "in our class", placeRu: "в нашем классе" },
+    { subjectEn: "Max", subjectRu: "Макс", placeEn: "in the football team", placeRu: "в футбольной команде" },
+    { subjectEn: "Grandpa", subjectRu: "Дедушка", placeEn: "in our family", placeRu: "в нашей семье" },
+    { subjectEn: "Our teacher", subjectRu: "Наша учительница", placeEn: "at school", placeRu: "в школе" },
+    { subjectEn: "My sister", subjectRu: "Моя сестра", placeEn: "at the party", placeRu: "на празднике" },
+    { subjectEn: "The clown", subjectRu: "Клоун", placeEn: "in the show", placeRu: "в шоу" },
+    { subjectEn: "Dad", subjectRu: "Папа", placeEn: "on the team", placeRu: "в команде" },
+    { subjectEn: "Nina", subjectRu: "Нина", placeEn: "in the art club", placeRu: "в кружке рисования" },
+  ],
+  sizeThings: [
+    { subjectEn: "This bike", subjectRu: "Этот велосипед", placeEn: "in the race", placeRu: "в гонке" },
+    { subjectEn: "This tent", subjectRu: "Эта палатка", placeEn: "in the shop", placeRu: "в магазине" },
+    { subjectEn: "This sleeping bag", subjectRu: "Этот спальный мешок", placeEn: "in the camp", placeRu: "в лагере" },
+    { subjectEn: "This backpack", subjectRu: "Этот рюкзак", placeEn: "of all the bags", placeRu: "из всех сумок" },
+    { subjectEn: "This snowball", subjectRu: "Этот снежок", placeEn: "in the yard", placeRu: "во дворе" },
+  ],
+  movementThings: [
+    { subjectEn: "This bike", subjectRu: "Этот велосипед", placeEn: "in the race", placeRu: "в гонке" },
+    { subjectEn: "The puppy", subjectRu: "Щенок", placeEn: "in the yard", placeRu: "во дворе" },
+    { subjectEn: "The tiger", subjectRu: "Тигр", placeEn: "in the zoo", placeRu: "в зоопарке" },
+    { subjectEn: "Max", subjectRu: "Макс", placeEn: "on the team", placeRu: "в команде" },
+  ],
+  lightThings: [
+    { subjectEn: "This lamp", subjectRu: "Эта лампа", placeEn: "in the room", placeRu: "в комнате" },
+    { subjectEn: "This flashlight", subjectRu: "Этот фонарик", placeEn: "in the tent", placeRu: "в палатке" },
+    { subjectEn: "This room", subjectRu: "Эта комната", placeEn: "in the house", placeRu: "в доме" },
+  ],
+  temperatureThings: [
+    { subjectEn: "This soup", subjectRu: "Этот суп", placeEn: "on the table", placeRu: "на столе" },
+    { subjectEn: "This tea", subjectRu: "Этот чай", placeEn: "in the teapot", placeRu: "в чайнике" },
+  ],
+  cleanThings: [
+    { subjectEn: "This room", subjectRu: "Эта комната", placeEn: "in the house", placeRu: "в доме" },
+    { subjectEn: "This backpack", subjectRu: "Этот рюкзак", placeEn: "in the camp", placeRu: "в лагере" },
+    { subjectEn: "This desk", subjectRu: "Эта парта", placeEn: "in the classroom", placeRu: "в классе" },
+  ],
+  taskThings: [
+    { subjectEn: "This puzzle", subjectRu: "Этот пазл", placeEn: "in the box", placeRu: "в коробке" },
+    { subjectEn: "This test", subjectRu: "Этот тест", placeEn: "in our class", placeRu: "в нашем классе" },
+    { subjectEn: "This exercise", subjectRu: "Это упражнение", placeEn: "in the workbook", placeRu: "в рабочей тетради" },
+  ],
+};
+
+const comparisonContextPoolByAdjective = {
+  small: "sizeThings",
+  big: "sizeThings",
+  tall: "people",
+  short: "people",
+  fast: "movementThings",
+  slow: "movementThings",
+  happy: "people",
+  funny: "people",
+  busy: "people",
+  noisy: "people",
+  strong: "people",
+  bright: "lightThings",
+  warm: "temperatureThings",
+  cold: "temperatureThings",
+  kind: "people",
+  young: "people",
+  old: "people",
+  clean: "cleanThings",
+  heavy: "sizeThings",
+  easy: "taskThings",
+  good: "taskThings",
+  bad: "taskThings",
+};
+
+const superlativeContextPoolByAdjective = {
+  small: "sizeThings",
+  big: "sizeThings",
+  tall: "people",
+  short: "people",
+  fast: "movementThings",
+  slow: "movementThings",
+  happy: "people",
+  funny: "people",
+  busy: "people",
+  noisy: "people",
+  strong: "people",
+  bright: "lightThings",
+  warm: "temperatureThings",
+  cold: "temperatureThings",
+  kind: "people",
+  young: "people",
+  old: "people",
+  clean: "cleanThings",
+  heavy: "sizeThings",
+  easy: "taskThings",
+  good: "taskThings",
+  bad: "taskThings",
+};
+
+const countableQuantifierQuestions = [
+  { promptEn: "How ___ apples are there in the basket?", promptRu: "Сколько яблок в корзине?" },
+  { promptEn: "How ___ books are there in the bag?", promptRu: "Сколько книг в сумке?" },
+  { promptEn: "How ___ stars can you see in the sky?", promptRu: "Сколько звёзд ты видишь в небе?" },
+  { promptEn: "How ___ tents are there at the camp?", promptRu: "Сколько палаток в лагере?" },
+  { promptEn: "How ___ boots are near the door?", promptRu: "Сколько ботинок у двери?" },
+  { promptEn: "How ___ pencils are in the box?", promptRu: "Сколько карандашей в коробке?" },
+  { promptEn: "How ___ stickers are on the notebook?", promptRu: "Сколько наклеек на тетради?" },
+  { promptEn: "How ___ cookies are on the plate?", promptRu: "Сколько печений на тарелке?" },
+  { promptEn: "How ___ questions are in this test?", promptRu: "Сколько вопросов в этом тесте?" },
+  { promptEn: "How ___ balloons are in the room?", promptRu: "Сколько воздушных шаров в комнате?" },
+  { promptEn: "How ___ shells are on the beach?", promptRu: "Сколько ракушек на пляже?" },
+  { promptEn: "How ___ sandwiches are in the lunchbox?", promptRu: "Сколько бутербродов в ланчбоксе?" },
+  { promptEn: "How ___ rabbits are in the picture?", promptRu: "Сколько кроликов на картинке?" },
+  { promptEn: "How ___ comics are on the shelf?", promptRu: "Сколько комиксов на полке?" },
+  { promptEn: "How ___ crayons are in the pencil case?", promptRu: "Сколько мелков в пенале?" },
 ];
 
-const thingComparisons = [
-  { leftEn: "This bike", leftRu: "Этот велосипед", rightEn: "that scooter", rightRu: "тот самокат" },
-  { leftEn: "This tent", leftRu: "Эта палатка", rightEn: "that tent", rightRu: "та палатка" },
-  { leftEn: "This sleeping bag", leftRu: "Этот спальный мешок", rightEn: "that blanket", rightRu: "то одеяло" },
-  { leftEn: "This pair of boots", leftRu: "Эта пара ботинок", rightEn: "that pair of shoes", rightRu: "та пара туфель" },
-  { leftEn: "This backpack", leftRu: "Этот рюкзак", rightEn: "that bag", rightRu: "та сумка" },
-  { leftEn: "This lamp", leftRu: "Эта лампа", rightEn: "that candle", rightRu: "та свеча" },
-  { leftEn: "This soup", leftRu: "Этот суп", rightEn: "that tea", rightRu: "тот чай" },
-  { leftEn: "This puzzle", leftRu: "Этот пазл", rightEn: "that task", rightRu: "то задание" },
-  { leftEn: "This room", leftRu: "Эта комната", rightEn: "that room", rightRu: "та комната" },
-  { leftEn: "This snowball", leftRu: "Этот снежок", rightEn: "that stone", rightRu: "тот камень" },
+const uncountableQuantifierQuestions = [
+  { promptEn: "How ___ milk is there in the glass?", promptRu: "Сколько молока в стакане?" },
+  { promptEn: "How ___ water is there in the bottle?", promptRu: "Сколько воды в бутылке?" },
+  { promptEn: "How ___ juice is there in the cup?", promptRu: "Сколько сока в чашке?" },
+  { promptEn: "How ___ rice is there in the bowl?", promptRu: "Сколько риса в миске?" },
+  { promptEn: "How ___ sugar is there in the jar?", promptRu: "Сколько сахара в банке?" },
+  { promptEn: "How ___ snow is there in the yard?", promptRu: "Сколько снега во дворе?" },
+  { promptEn: "How ___ homework do you have today?", promptRu: "Сколько у тебя сегодня домашней работы?" },
+  { promptEn: "How ___ cheese is there in the sandwich?", promptRu: "Сколько сыра в бутерброде?" },
+  { promptEn: "How ___ tea is there in the teapot?", promptRu: "Сколько чая в чайнике?" },
+  { promptEn: "How ___ soup is there in the pot?", promptRu: "Сколько супа в кастрюле?" },
+  { promptEn: "How ___ bread is there on the table?", promptRu: "Сколько хлеба на столе?" },
+  { promptEn: "How ___ jam is there in the jar?", promptRu: "Сколько варенья в банке?" },
+  { promptEn: "How ___ sand is there on the beach?", promptRu: "Сколько песка на пляже?" },
+  { promptEn: "How ___ music is on your playlist?", promptRu: "Сколько музыки в твоём плейлисте?" },
+  { promptEn: "How ___ air is there in the balloon?", promptRu: "Сколько воздуха в шарике?" },
 ];
 
-const personSuperlatives = [
-  { subjectEn: "Mia", subjectRu: "Мия", placeEn: "in our class", placeRu: "в нашем классе" },
-  { subjectEn: "Max", subjectRu: "Макс", placeEn: "in the football team", placeRu: "в футбольной команде" },
-  { subjectEn: "Grandpa", subjectRu: "Дедушка", placeEn: "in our family", placeRu: "в нашей семье" },
-  { subjectEn: "Our teacher", subjectRu: "Наша учительница", placeEn: "at school", placeRu: "в школе" },
-  { subjectEn: "My sister", subjectRu: "Моя сестра", placeEn: "at the party", placeRu: "на празднике" },
-  { subjectEn: "The puppy", subjectRu: "Щенок", placeEn: "in the yard", placeRu: "во дворе" },
-  { subjectEn: "The clown", subjectRu: "Клоун", placeEn: "in the show", placeRu: "в шоу" },
-  { subjectEn: "Dad", subjectRu: "Папа", placeEn: "on the team", placeRu: "в команде" },
-  { subjectEn: "The tiger", subjectRu: "Тигр", placeEn: "in the zoo", placeRu: "в зоопарке" },
-  { subjectEn: "Nina", subjectRu: "Нина", placeEn: "in the art club", placeRu: "в кружке рисования" },
+const countableQuantifierStatements = [
+  { promptEn: "We have ___ books on the shelf.", promptRu: "У нас на полке ___ книг." },
+  { promptEn: "We have ___ crayons in the box.", promptRu: "У нас в коробке ___ мелков." },
+  { promptEn: "We have ___ comics in our classroom.", promptRu: "У нас в классе ___ комиксов." },
+  { promptEn: "We have ___ apples for the picnic.", promptRu: "У нас для пикника ___ яблок." },
+  { promptEn: "We have ___ balloons for the party.", promptRu: "У нас для праздника ___ воздушных шаров." },
+  { promptEn: "We have ___ sandwiches for lunch.", promptRu: "У нас на обед ___ бутербродов." },
+  { promptEn: "We have ___ cookies for tea.", promptRu: "У нас к чаю ___ печений." },
+  { promptEn: "We have ___ questions in this test.", promptRu: "В этом тесте ___ вопросов." },
+  { promptEn: "We have ___ pencils on the desk.", promptRu: "У нас на парте ___ карандашей." },
+  { promptEn: "We have ___ stickers in the album.", promptRu: "У нас в альбоме ___ наклеек." },
+  { promptEn: "We have ___ tents at the camp.", promptRu: "У нас в лагере ___ палаток." },
+  { promptEn: "We have ___ shells in the box.", promptRu: "У нас в коробке ___ ракушек." },
+  { promptEn: "We have ___ rabbits in the picture.", promptRu: "У нас на картинке ___ кроликов." },
+  { promptEn: "We have ___ stars on the poster.", promptRu: "У нас на плакате ___ звёзд." },
+  { promptEn: "We have ___ boots by the door.", promptRu: "У нас у двери ___ ботинок." },
 ];
 
-const thingSuperlatives = [
-  { subjectEn: "This bike", subjectRu: "Этот велосипед", placeEn: "in the race", placeRu: "в гонке" },
-  { subjectEn: "This tent", subjectRu: "Эта палатка", placeEn: "in the shop", placeRu: "в магазине" },
-  { subjectEn: "This sleeping bag", subjectRu: "Этот спальный мешок", placeEn: "in the camp", placeRu: "в лагере" },
-  { subjectEn: "This lamp", subjectRu: "Эта лампа", placeEn: "in the room", placeRu: "в комнате" },
-  { subjectEn: "This tea", subjectRu: "Этот чай", placeEn: "on the table", placeRu: "на столе" },
-  { subjectEn: "This puzzle", subjectRu: "Этот пазл", placeEn: "in the box", placeRu: "в коробке" },
-  { subjectEn: "This backpack", subjectRu: "Этот рюкзак", placeEn: "of all", placeRu: "из всех" },
-  { subjectEn: "This room", subjectRu: "Эта комната", placeEn: "in the house", placeRu: "в доме" },
-  { subjectEn: "This blanket", subjectRu: "Это одеяло", placeEn: "in the cupboard", placeRu: "в шкафу" },
-  { subjectEn: "This road", subjectRu: "Эта дорога", placeEn: "in our town", placeRu: "в нашем городе" },
-];
-
-const countableNouns = [
-  { en: "apples", ru: "яблок" },
-  { en: "books", ru: "книг" },
-  { en: "stars", ru: "звёзд" },
-  { en: "tents", ru: "палаток" },
-  { en: "boots", ru: "ботинок" },
-  { en: "pencils", ru: "карандашей" },
-  { en: "stickers", ru: "наклеек" },
-  { en: "cookies", ru: "печений" },
-  { en: "questions", ru: "вопросов" },
-  { en: "balloons", ru: "воздушных шаров" },
-  { en: "shells", ru: "ракушек" },
-  { en: "sandwiches", ru: "бутербродов" },
-  { en: "rabbits", ru: "кроликов" },
-  { en: "comics", ru: "комиксов" },
-  { en: "crayons", ru: "мелков" },
-];
-
-const uncountableNouns = [
-  { en: "milk", ru: "молока" },
-  { en: "water", ru: "воды" },
-  { en: "juice", ru: "сока" },
-  { en: "rice", ru: "риса" },
-  { en: "sugar", ru: "сахара" },
-  { en: "snow", ru: "снега" },
-  { en: "homework", ru: "домашней работы" },
-  { en: "cheese", ru: "сыра" },
-  { en: "tea", ru: "чая" },
-  { en: "soup", ru: "супа" },
-  { en: "bread", ru: "хлеба" },
-  { en: "jam", ru: "варенья" },
-  { en: "sand", ru: "песка" },
-  { en: "music", ru: "музыки" },
-  { en: "air", ru: "воздуха" },
+const uncountableQuantifierStatements = [
+  { promptEn: "There is ___ water in the bottle.", promptRu: "В бутылке ___ воды." },
+  { promptEn: "There is ___ soup in the pot.", promptRu: "В кастрюле ___ супа." },
+  { promptEn: "There is ___ jam in the jar.", promptRu: "В банке ___ варенья." },
+  { promptEn: "There is ___ cheese in the fridge.", promptRu: "В холодильнике ___ сыра." },
+  { promptEn: "There is ___ tea in the teapot.", promptRu: "В чайнике ___ чая." },
+  { promptEn: "There is ___ bread on the table.", promptRu: "На столе ___ хлеба." },
+  { promptEn: "There is ___ sugar in the bowl.", promptRu: "В миске ___ сахара." },
+  { promptEn: "There is ___ rice in the pot.", promptRu: "В кастрюле ___ риса." },
+  { promptEn: "There is ___ milk in the fridge.", promptRu: "В холодильнике ___ молока." },
+  { promptEn: "There is ___ sand on the beach.", promptRu: "На пляже ___ песка." },
+  { promptEn: "There is ___ snow in the yard.", promptRu: "Во дворе ___ снега." },
+  { promptEn: "There is ___ air in the balloon.", promptRu: "В шарике ___ воздуха." },
+  { promptEn: "We have ___ homework today.", promptRu: "У нас сегодня ___ домашней работы." },
+  { promptEn: "There is ___ juice in the glass.", promptRu: "В стакане ___ сока." },
+  { promptEn: "There is ___ music on my playlist.", promptRu: "В моём плейлисте ___ музыки." },
 ];
 
 const generateComparisonSection = () => {
@@ -309,27 +470,13 @@ const generateComparisonSection = () => {
   for (let index = 0; index < 50; index += 1) {
     const adjective = comparisonAdjectives[index % comparisonAdjectives.length];
     const pool =
-      adjective.kind === "thing"
-        ? thingComparisons
-        : adjective.kind === "person"
-          ? personComparisons
-          : index % 2 === 0
-            ? personComparisons
-            : thingComparisons;
-    const context = pool[(index * 3) % pool.length];
-    const promptEn =
-      index % 2 === 0
-        ? `${context.leftEn} is ___ than ${context.rightEn}.`
-        : `${context.leftEn} looks ___ than ${context.rightEn} today.`;
-    const promptRu =
-      index % 2 === 0
-        ? `${context.leftRu} ___, чем ${context.rightRu}.`
-        : `${context.leftRu} сегодня ___, чем ${context.rightRu}.`;
+      comparisonContextPools[comparisonContextPoolByAdjective[adjective.base]];
+    const context = pool[index % pool.length];
 
     questions.push(
       createQuestion(
-        promptEn,
-        promptRu,
+        `${context.leftEn} is ___ than ${context.rightEn}.`,
+        `${context.leftRu} ___, чем ${context.rightRu}.`,
         [
           option(adjective.comparative, adjective.ruComp),
           option(adjective.base, adjective.ruBase),
@@ -346,14 +493,8 @@ const generateComparisonSection = () => {
   for (let index = 0; index < 50; index += 1) {
     const adjective = comparisonAdjectives[(index * 2) % comparisonAdjectives.length];
     const pool =
-      adjective.kind === "thing"
-        ? thingSuperlatives
-        : adjective.kind === "person"
-          ? personSuperlatives
-          : index % 2 === 0
-            ? personSuperlatives
-            : thingSuperlatives;
-    const context = pool[(index * 5) % pool.length];
+      superlativeContextPools[superlativeContextPoolByAdjective[adjective.base]];
+    const context = pool[index % pool.length];
     const promptEn = `${context.subjectEn} is the ___ ${context.placeEn}.`;
     const promptRu = `${context.subjectRu} ___ ${context.placeRu}.`;
 
@@ -390,8 +531,8 @@ const generatePastSimpleSection = () => {
   for (let index = 0; index < 60; index += 1) {
     const subject =
       index % 2 === 0
-        ? singularSubjects[index % singularSubjects.length]
-        : pluralSubjects[index % pluralSubjects.length];
+        ? studySingularSubjects[index % studySingularSubjects.length]
+        : studyPluralSubjects[index % studyPluralSubjects.length];
     const phrase = activityPhrases[(index * 2) % activityPhrases.length];
     const tail = pastTail[index % pastTail.length];
 
@@ -415,8 +556,8 @@ const generatePastSimpleSection = () => {
   for (let index = 0; index < 40; index += 1) {
     const subject =
       index % 2 === 0
-        ? singularSubjects[(index * 3) % singularSubjects.length]
-        : pluralSubjects[(index * 3) % pluralSubjects.length];
+        ? studySingularSubjects[(index * 3) % studySingularSubjects.length]
+        : studyPluralSubjects[(index * 3) % studyPluralSubjects.length];
     const phrase = activityPhrases[(index * 5) % activityPhrases.length];
     const tail = pastTail[(index * 2) % pastTail.length];
 
@@ -478,13 +619,13 @@ const generateSignalsSection = () => {
   const questions = [];
 
   for (let index = 0; index < 15; index += 1) {
-    const subject = singularSubjects[index % singularSubjects.length];
+    const subject = studySingularSubjects[index % studySingularSubjects.length];
     const phrase = activityPhrases[(index * 2) % activityPhrases.length];
 
     questions.push(
       createQuestion(
         `${subject.en} ${phrase.third} ___ .`,
-        `${subject.ru} ___ .`,
+        `${subject.ru} ${phrase.ruThird} ___ .`,
         [
           signalWords.presentSimple[index % signalWords.presentSimple.length],
           signalWords.presentContinuous[index % signalWords.presentContinuous.length],
@@ -501,14 +642,14 @@ const generateSignalsSection = () => {
   for (let index = 0; index < 15; index += 1) {
     const subject =
       index % 2 === 0
-        ? singularSubjects[(index * 3) % singularSubjects.length]
-        : pluralSubjects[(index * 2) % pluralSubjects.length];
+        ? studySingularSubjects[(index * 3) % studySingularSubjects.length]
+        : studyPluralSubjects[(index * 2) % studyPluralSubjects.length];
     const phrase = activityPhrases[(index * 4) % activityPhrases.length];
 
     questions.push(
       createQuestion(
         `Look! ${subject.en} ${subject.be} ${phrase.ing} ___ .`,
-        `Смотри! ${subject.ru} ___ .`,
+        `Смотри! ${subject.ru} ${phrase.ruIng} ___ .`,
         [
           signalWords.presentContinuous[index % signalWords.presentContinuous.length],
           signalWords.presentSimple[index % signalWords.presentSimple.length],
@@ -525,14 +666,14 @@ const generateSignalsSection = () => {
   for (let index = 0; index < 15; index += 1) {
     const subject =
       index % 2 === 0
-        ? singularSubjects[(index * 5) % singularSubjects.length]
-        : pluralSubjects[(index * 5) % pluralSubjects.length];
+        ? studySingularSubjects[(index * 5) % studySingularSubjects.length]
+        : studyPluralSubjects[(index * 5) % studyPluralSubjects.length];
     const phrase = activityPhrases[(index * 6) % activityPhrases.length];
 
     questions.push(
       createQuestion(
         `${subject.en} ${phrase.past} ___ .`,
-        `${subject.ru} ___ .`,
+        `${subject.ru} ${phrase.ruPast} ___ .`,
         [
           signalWords.pastSimple[index % signalWords.pastSimple.length],
           signalWords.presentSimple[index % signalWords.presentSimple.length],
@@ -549,14 +690,15 @@ const generateSignalsSection = () => {
   for (let index = 0; index < 15; index += 1) {
     const subject =
       index % 2 === 0
-        ? singularSubjects[(index * 7) % singularSubjects.length]
-        : pluralSubjects[(index * 7) % pluralSubjects.length];
+        ? studySingularSubjects[(index * 7) % studySingularSubjects.length]
+        : studyPluralSubjects[(index * 7) % studyPluralSubjects.length];
     const phrase = activityPhrases[(index * 3) % activityPhrases.length];
+    const futureAuxiliaryRu = getRuFutureAuxiliary(subject);
 
     questions.push(
       createQuestion(
         `${subject.en} will ${phrase.base} ___ .`,
-        `${subject.ru} ___ .`,
+        `${subject.ru} ${futureAuxiliaryRu} ${phrase.ruBase} ___ .`,
         [
           signalWords.future[index % signalWords.future.length],
           signalWords.presentSimple[index % signalWords.presentSimple.length],
@@ -571,13 +713,14 @@ const generateSignalsSection = () => {
   }
 
   for (let index = 0; index < 10; index += 1) {
-    const subject = singularSubjects[(index * 2) % singularSubjects.length];
+    const subject =
+      studySingularSubjects[(index * 2) % studySingularSubjects.length];
     const phrase = activityPhrases[(index * 4) % activityPhrases.length];
 
     questions.push(
       createQuestion(
         `___ ${subject.en} ${phrase.base} every day?`,
-        `___ ${subject.ru.toLowerCase()} каждый день?`,
+        "Выбери правильное слово для вопроса о привычке одного человека.",
         [option("Does", "ли"), option("Do", "ли"), option("Did", "ли"), option("Is", "ли")],
         0,
         "С he/she/it в вопросе Present Simple ставим Does.",
@@ -587,13 +730,13 @@ const generateSignalsSection = () => {
   }
 
   for (let index = 0; index < 10; index += 1) {
-    const subject = pluralSubjects[(index * 3) % pluralSubjects.length];
+    const subject = studyPluralSubjects[(index * 3) % studyPluralSubjects.length];
     const phrase = activityPhrases[(index * 5) % activityPhrases.length];
 
     questions.push(
       createQuestion(
         `___ ${subject.en} ${phrase.base} after school?`,
-        `___ ${subject.ru.toLowerCase()} после школы?`,
+        "Выбери правильное слово для вопроса о привычке нескольких людей.",
         [option("Do", "ли"), option("Does", "ли"), option("Did", "ли"), option("Are", "ли")],
         0,
         "С I/you/we/they в вопросе Present Simple ставим Do.",
@@ -605,15 +748,15 @@ const generateSignalsSection = () => {
   for (let index = 0; index < 10; index += 1) {
     const subject =
       index % 2 === 0
-        ? singularSubjects[(index * 5) % singularSubjects.length]
-        : pluralSubjects[(index * 2) % pluralSubjects.length];
+        ? studySingularSubjects[(index * 5) % studySingularSubjects.length]
+        : studyPluralSubjects[(index * 2) % studyPluralSubjects.length];
     const phrase = activityPhrases[(index * 6) % activityPhrases.length];
     const correct = subject.be.charAt(0).toUpperCase() + subject.be.slice(1);
 
     questions.push(
       createQuestion(
         `___ ${subject.en} ${phrase.ing} now?`,
-        `___ ${subject.ru.toLowerCase()} сейчас?`,
+        "Выбери правильный вспомогательный глагол для вопроса о действии, которое идёт сейчас.",
         [
           option(correct, "правильный вспомогательный глагол"),
           option("Do", "делать"),
@@ -630,14 +773,14 @@ const generateSignalsSection = () => {
   for (let index = 0; index < 5; index += 1) {
     const subject =
       index % 2 === 0
-        ? singularSubjects[(index * 7) % singularSubjects.length]
-        : pluralSubjects[(index * 7) % pluralSubjects.length];
+        ? studySingularSubjects[(index * 7) % studySingularSubjects.length]
+        : studyPluralSubjects[(index * 7) % studyPluralSubjects.length];
     const phrase = activityPhrases[(index * 8) % activityPhrases.length];
 
     questions.push(
       createQuestion(
         `___ ${subject.en} ${phrase.base} yesterday?`,
-        `___ ${subject.ru.toLowerCase()} вчера?`,
+        "Выбери правильное слово для вопроса о действии в прошлом.",
         [option("Did", "ли"), option("Do", "ли"), option("Does", "ли"), option("Was", "был")],
         0,
         "Вопрос в Past Simple начинается с Did.",
@@ -649,14 +792,14 @@ const generateSignalsSection = () => {
   for (let index = 0; index < 5; index += 1) {
     const subject =
       index % 2 === 0
-        ? singularSubjects[(index * 9) % singularSubjects.length]
-        : pluralSubjects[(index * 9) % pluralSubjects.length];
+        ? studySingularSubjects[(index * 9) % studySingularSubjects.length]
+        : studyPluralSubjects[(index * 9) % studyPluralSubjects.length];
     const phrase = activityPhrases[(index * 9) % activityPhrases.length];
 
     questions.push(
       createQuestion(
         `___ ${subject.en} ${phrase.base} tomorrow?`,
-        `___ ${subject.ru.toLowerCase()} завтра?`,
+        "Выбери правильное слово для вопроса о будущем действии.",
         [option("Will", "будет ли"), option("Did", "сделал ли"), option("Do", "делают ли"), option("Are", "они")],
         0,
         "Для простого вопроса о будущем времени ставим Will.",
@@ -679,7 +822,7 @@ const generatePresentSimpleSection = () => {
   const questions = [];
 
   for (let index = 0; index < 35; index += 1) {
-    const subject = singularSubjects[index % singularSubjects.length];
+    const subject = studySingularSubjects[index % studySingularSubjects.length];
     const phrase = activityPhrases[(index * 2) % activityPhrases.length];
     const tail = timeTail[index % timeTail.length];
 
@@ -701,7 +844,7 @@ const generatePresentSimpleSection = () => {
   }
 
   for (let index = 0; index < 35; index += 1) {
-    const subject = pluralSubjects[index % pluralSubjects.length];
+    const subject = studyPluralSubjects[index % studyPluralSubjects.length];
     const phrase = activityPhrases[(index * 3) % activityPhrases.length];
     const tail = timeTail[(index * 2) % timeTail.length];
 
@@ -725,8 +868,8 @@ const generatePresentSimpleSection = () => {
   for (let index = 0; index < 30; index += 1) {
     const subject =
       index % 2 === 0
-        ? singularSubjects[(index * 4) % singularSubjects.length]
-        : pluralSubjects[(index * 4) % pluralSubjects.length];
+        ? studySingularSubjects[(index * 4) % studySingularSubjects.length]
+        : studyPluralSubjects[(index * 4) % studyPluralSubjects.length];
     const phrase = activityPhrases[(index * 5) % activityPhrases.length];
     const tail = timeTail[(index * 3) % timeTail.length];
 
@@ -763,8 +906,8 @@ const generatePresentContinuousSection = () => {
   for (let index = 0; index < 70; index += 1) {
     const subject =
       index % 2 === 0
-        ? singularSubjects[index % singularSubjects.length]
-        : pluralSubjects[index % pluralSubjects.length];
+        ? studySingularSubjects[index % studySingularSubjects.length]
+        : studyPluralSubjects[index % studyPluralSubjects.length];
     const phrase = activityPhrases[(index * 2) % activityPhrases.length];
 
     questions.push(
@@ -772,7 +915,7 @@ const generatePresentContinuousSection = () => {
         `${subject.en} ___ now.`,
         `${subject.ru} ___ сейчас.`,
         [
-          option(`${subject.be} ${phrase.ing}`, `${subject.ru} ${phrase.ruIng}`),
+          option(`${subject.be} ${phrase.ing}`, phrase.ruIng),
           option(phrase.base, phrase.ruBase),
           option(phrase.third, phrase.ruThird),
           option(phrase.past, phrase.ruPast),
@@ -787,8 +930,8 @@ const generatePresentContinuousSection = () => {
   for (let index = 0; index < 30; index += 1) {
     const subject =
       index % 2 === 0
-        ? singularSubjects[(index * 4) % singularSubjects.length]
-        : pluralSubjects[(index * 4) % pluralSubjects.length];
+        ? studySingularSubjects[(index * 4) % studySingularSubjects.length]
+        : studyPluralSubjects[(index * 4) % studyPluralSubjects.length];
     const phrase = activityPhrases[(index * 5) % activityPhrases.length];
 
     questions.push(
@@ -824,15 +967,16 @@ const generateFutureSection = () => {
   for (let index = 0; index < 34; index += 1) {
     const subject =
       index % 2 === 0
-        ? singularSubjects[index % singularSubjects.length]
-        : pluralSubjects[index % pluralSubjects.length];
+        ? studySingularSubjects[index % studySingularSubjects.length]
+        : studyPluralSubjects[index % studyPluralSubjects.length];
     const phrase = activityPhrases[(index * 3) % activityPhrases.length];
     const tail = futureTail[index % futureTail.length];
+    const futureAuxiliaryRu = getRuFutureAuxiliary(subject);
 
     questions.push(
       createQuestion(
         `${subject.en} ___ ${phrase.base} ${tail.en}.`,
-        `${subject.ru} ___ ${tail.ru}.`,
+        `${subject.ru} ${futureAuxiliaryRu} ${phrase.ruBase} ${tail.ru}.`,
         [
           option("will", "будет"),
           option(subject.be, "есть"),
@@ -849,18 +993,19 @@ const generateFutureSection = () => {
   for (let index = 0; index < 33; index += 1) {
     const subject =
       index % 2 === 0
-        ? singularSubjects[(index * 2) % singularSubjects.length]
-        : pluralSubjects[(index * 2) % pluralSubjects.length];
+        ? studySingularSubjects[(index * 2) % studySingularSubjects.length]
+        : studyPluralSubjects[(index * 2) % studyPluralSubjects.length];
     const phrase = activityPhrases[(index * 4) % activityPhrases.length];
     const tail = futureTail[(index * 2) % futureTail.length];
     const correct = `${subject.be} going to`;
     const wrongBe =
       subject.be === "am" ? "is going to" : subject.be === "is" ? "are going to" : "is going to";
+    const futureAuxiliaryRu = getRuFutureAuxiliary(subject);
 
     questions.push(
       createQuestion(
         `${subject.en} ___ ${phrase.base} ${tail.en}.`,
-        `${subject.ru} ___ ${tail.ru}.`,
+        `${subject.ru} ${futureAuxiliaryRu} ${phrase.ruBase} ${tail.ru}.`,
         [
           option(correct, "собирается"),
           option("will", "будет"),
@@ -877,15 +1022,16 @@ const generateFutureSection = () => {
   for (let index = 0; index < 33; index += 1) {
     const subject =
       index % 2 === 0
-        ? singularSubjects[(index * 5) % singularSubjects.length]
-        : pluralSubjects[(index * 5) % pluralSubjects.length];
+        ? studySingularSubjects[(index * 5) % studySingularSubjects.length]
+        : studyPluralSubjects[(index * 5) % studyPluralSubjects.length];
     const phrase = activityPhrases[(index * 6) % activityPhrases.length];
     const tail = futureTail[(index * 3) % futureTail.length];
+    const futureAuxiliaryRu = getRuNegativeFutureAuxiliary(subject);
 
     questions.push(
       createQuestion(
         `${subject.en} ___ ${phrase.base} ${tail.en}.`,
-        `${subject.ru} не ___ ${tail.ru}.`,
+        `${subject.ru} ${futureAuxiliaryRu} ${phrase.ruBase} ${tail.ru}.`,
         [
           option("won't", "не будет"),
           option(subject.negativeDo, "не делает"),
@@ -913,12 +1059,13 @@ const generateQuantifiersSection = () => {
   const questions = [];
 
   for (let index = 0; index < 35; index += 1) {
-    const noun = countableNouns[index % countableNouns.length];
+    const context =
+      countableQuantifierQuestions[index % countableQuantifierQuestions.length];
 
     questions.push(
       createQuestion(
-        `How ___ ${noun.en} are there in the basket?`,
-        `Сколько ___ в корзине?`,
+        context.promptEn,
+        context.promptRu,
         [
           option("many", "много"),
           option("much", "много"),
@@ -933,12 +1080,13 @@ const generateQuantifiersSection = () => {
   }
 
   for (let index = 0; index < 35; index += 1) {
-    const noun = uncountableNouns[index % uncountableNouns.length];
+    const context =
+      uncountableQuantifierQuestions[index % uncountableQuantifierQuestions.length];
 
     questions.push(
       createQuestion(
-        `How ___ ${noun.en} is there in the cup?`,
-        `Сколько ___ в чашке?`,
+        context.promptEn,
+        context.promptRu,
         [
           option("much", "много"),
           option("many", "много"),
@@ -953,12 +1101,15 @@ const generateQuantifiersSection = () => {
   }
 
   for (let index = 0; index < 15; index += 1) {
-    const noun = countableNouns[(index * 2) % countableNouns.length];
+    const context =
+      countableQuantifierStatements[
+        (index * 2) % countableQuantifierStatements.length
+      ];
 
     questions.push(
       createQuestion(
-        `We have ___ ${noun.en} in our classroom.`,
-        `У нас в классе ___ .`,
+        context.promptEn,
+        context.promptRu,
         [
           option("a lot of", "много"),
           option("many", "много"),
@@ -973,12 +1124,15 @@ const generateQuantifiersSection = () => {
   }
 
   for (let index = 0; index < 15; index += 1) {
-    const noun = uncountableNouns[(index * 2) % uncountableNouns.length];
+    const context =
+      uncountableQuantifierStatements[
+        (index * 2) % uncountableQuantifierStatements.length
+      ];
 
     questions.push(
       createQuestion(
-        `There is ___ ${noun.en} on the table.`,
-        `На столе ___ .`,
+        context.promptEn,
+        context.promptRu,
         [
           option("a lot of", "много"),
           option("many", "много"),
@@ -1095,7 +1249,7 @@ const modalContexts = {
     { subjectEn: "Leo", subjectRu: "Лео", actionEn: "wear a scarf in hot weather", actionRu: "носить шарф в жару" },
     { subjectEn: "Our teacher", subjectRu: "Наша учительница", actionEn: "come to school on Saturday", actionRu: "приходить в школу в субботу" },
     { subjectEn: "Mom", subjectRu: "Мама", actionEn: "cook dinner tonight", actionRu: "готовить ужин сегодня вечером" },
-    { subjectEn: "The dog", subjectRu: "Собака", actionEn: "wear flippers", actionRu: "носить ласты" },
+    { subjectEn: "The dog", subjectRu: "Собака", actionEn: "stay outside today", actionRu: "оставаться сегодня на улице" },
   ],
   must: [
     { subjectEn: "You", subjectRu: "Ты", actionEn: "be quiet in class", actionRu: "вести себя тихо на уроке" },
@@ -1260,7 +1414,7 @@ const questionWordContexts = {
     { sentenceEn: "___ is wearing red boots? Nina.", sentenceRu: "___ в красных ботинках? Нина." },
     { sentenceEn: "___ is feeding the cat? Max.", sentenceRu: "___ кормит кота? Макс." },
     { sentenceEn: "___ is drawing a rainbow? Mia.", sentenceRu: "___ рисует радугу? Мия." },
-    { sentenceEn: "___ is in the tent? Leo.", sentenceRu: "___ в палатке? Лев." },
+    { sentenceEn: "___ is in the tent? Leo.", sentenceRu: "___ в палатке? Лео." },
     { sentenceEn: "___ is carrying the sleeping bag? Grandpa.", sentenceRu: "___ несёт спальный мешок? Дедушка." },
     { sentenceEn: "___ is knocking? Our teacher.", sentenceRu: "___ стучит? Наша учительница." },
     { sentenceEn: "___ is telling the joke? The clown.", sentenceRu: "___ рассказывает шутку? Клоун." },
@@ -1307,7 +1461,7 @@ const questionWordContexts = {
   ],
   when: [
     { sentenceEn: "___ is your birthday? In May.", sentenceRu: "___ у тебя день рождения? В мае." },
-    { sentenceEn: "___ do you get up? At seven.", sentenceRu: "___ ты встаёшь? В семь." },
+    { sentenceEn: "___ do you get up early? On school days.", sentenceRu: "___ ты встаёшь рано? В учебные дни." },
     { sentenceEn: "___ will they come? Tomorrow.", sentenceRu: "___ они придут? Завтра." },
     { sentenceEn: "___ do we have English? On Monday.", sentenceRu: "___ у нас английский? В понедельник." },
     { sentenceEn: "___ did Dad call grandma? Last night.", sentenceRu: "___ папа звонил бабушке? Прошлой ночью." },
@@ -1319,7 +1473,7 @@ const questionWordContexts = {
     { sentenceEn: "___ will Mia wear the pink dress? On Saturday.", sentenceRu: "___ Мия наденет розовое платье? В субботу." },
     { sentenceEn: "___ are they packing the tent? Right now.", sentenceRu: "___ они собирают палатку? Прямо сейчас." },
     { sentenceEn: "___ do you usually visit Grandpa? On Sundays.", sentenceRu: "___ ты обычно навещаешь дедушку? По воскресеньям." },
-    { sentenceEn: "___ did the lesson finish? At two o'clock.", sentenceRu: "___ закончился урок? В два часа." },
+    { sentenceEn: "___ did the lesson finish? After lunch.", sentenceRu: "___ закончился урок? После обеда." },
     { sentenceEn: "___ are we meeting Nina? This evening.", sentenceRu: "___ мы встречаемся с Ниной? Сегодня вечером." },
   ],
   why: [
@@ -1340,7 +1494,7 @@ const questionWordContexts = {
     { sentenceEn: "___ is the soup? It is hot.", sentenceRu: "___ суп? Он горячий." },
     { sentenceEn: "___ do we open this box? With a key.", sentenceRu: "___ мы откроем эту коробку? Ключом." },
     { sentenceEn: "___ does the puppy run? Very fast.", sentenceRu: "___ бегает щенок? Очень быстро." },
-    { sentenceEn: "___ are the flowers? Beautiful.", sentenceRu: "___ цветы? Красивые." },
+    { sentenceEn: "___ is the cake? Very sweet.", sentenceRu: "___ торт? Очень сладкий." },
     { sentenceEn: "___ do you spell your name? K-A-T-E.", sentenceRu: "___ пишется твоё имя? К-А-Т-Е." },
     { sentenceEn: "___ is your grandma? She is great.", sentenceRu: "___ твоя бабушка? У неё всё отлично." },
     { sentenceEn: "___ do birds fly? With their wings.", sentenceRu: "___ летают птицы? Своими крыльями." },
@@ -1502,7 +1656,7 @@ const sections = [
 ].map(finalizeSection);
 
 export const questionBank = {
-  version: "1.0.0",
+  version: "1.1.0",
   totalSections: sections.length,
   totalQuestions: sections.reduce((sum, section) => sum + section.questions.length, 0),
   sections,

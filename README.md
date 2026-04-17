@@ -2,6 +2,11 @@
 
 Красивый сайт с тестами по английскому языку для 4 класса. Внутри 9 разделов по английскому, по 100 вопросов в каждом, перевод предложений и вариантов ответа, очки, краткие пояснения и сохранение прогресса на устройстве.
 
+<img width="2545" height="1326" alt="vivaldi_6Sj5eer2Vx" src="https://github.com/user-attachments/assets/f6250815-d554-4071-84aa-e5b4ba972387" />
+
+<img width="2545" height="1326" alt="vivaldi_m3qwQL8Oac" src="https://github.com/user-attachments/assets/6a734e23-2cb8-4e2e-bc9f-05a5a9fff822" />
+
+
 ## Возможности
 
 - 9 тематических разделов и 900 вопросов

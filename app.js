@@ -113,6 +113,10 @@ function isVocabularySection(section) {
   return section?.type === "vocabulary";
 }
 
+function isReverseVocabularyQuestion(question) {
+  return question?.direction === "ru-en";
+}
+
 function getQuestionCount(section) {
   return section?.questionCount || section?.questions?.length || 0;
 }
@@ -225,6 +229,11 @@ function applySavedSession(section, session) {
     state.showOptionTranslation = session.showOptionTranslation;
   }
 
+  if (isVocabularySection(section)) {
+    state.showPromptTranslation = false;
+    state.showOptionTranslation = false;
+  }
+
   if (state.answered && state.selectedOptionIndex === null) {
     state.answered = false;
   }
@@ -307,7 +316,7 @@ function renderHeroSummary() {
     <article class="summary-card">
       <span class="summary-card__label">Словарь</span>
       <strong>${vocabularyBank.totalSections}</strong>
-      <span class="summary-card__sub">${vocabularyBank.totalQuestions} слов для повторения</span>
+      <span class="summary-card__sub">${vocabularyBank.totalWords} слов и ${vocabularyBank.totalQuestions} заданий</span>
     </article>
     <article class="summary-card">
       <span class="summary-card__label">Пройдено тем</span>
@@ -338,6 +347,9 @@ function renderDeckCards(targetElement, sections) {
       const bestCorrect = progress
         ? `${progress.bestCorrect}/${questionCount}`
         : `0/${questionCount}`;
+      const itemCountText = isVocabulary
+        ? `${section.wordCount} слов • ${questionCount} заданий`
+        : `${questionCount} вопросов`;
       const fill = progress
         ? Math.max(8, Math.round((progress.bestCorrect / questionCount) * 100))
         : savedSession
@@ -347,7 +359,7 @@ function renderDeckCards(targetElement, sections) {
             )
           : 8;
       const footerText = savedSession
-        ? `Продолжить с ${isVocabulary ? "слова" : "вопроса"} ${savedSession.questionIndex + 1}`
+        ? `Продолжить с ${isVocabulary ? "задания" : "вопроса"} ${savedSession.questionIndex + 1}`
         : `Верно: ${bestCorrect}`;
       const resumeText = savedSession
         ? `Сохранено: счёт ${scoreLabel(savedSession.score)}, правильных ${savedSession.correctAnswers}/${questionCount}`
@@ -361,7 +373,7 @@ function renderDeckCards(targetElement, sections) {
           <h3>${section.title}</h3>
           <p class="section-card__description">${section.description}</p>
           <div class="section-card__meta">
-            <span>${questionCount} ${isVocabulary ? "слов" : "вопросов"}</span>
+            <span>${itemCountText}</span>
             <span>Лучший счёт: ${bestScore}</span>
           </div>
           <div class="section-card__meter">
@@ -408,13 +420,27 @@ function renderQuestionView() {
   const section = getCurrentSection();
   const question = getCurrentQuestion();
   const isVocabulary = isVocabularySection(section);
+  const isReverseVocabulary = isVocabulary && isReverseVocabularyQuestion(question);
   const progressValue = ((state.questionIndex + 1) / state.questions.length) * 100;
   const feedbackClass =
     state.selectedOptionIndex === question.correctIndex ? "correct" : "wrong";
   const correctAnswer = question.options[question.correctIndex];
-  const promptText = state.showPromptTranslation
-    ? question.prompt.ru
-    : question.prompt.en;
+  const promptText = isVocabulary
+    ? isReverseVocabulary
+      ? question.prompt.ru
+      : question.prompt.en
+    : state.showPromptTranslation
+      ? question.prompt.ru
+      : question.prompt.en;
+  const vocabularyEyebrow = isReverseVocabulary
+    ? "Найди слово по-английски"
+    : "Найди правильный перевод";
+  const vocabularyHintText = isReverseVocabulary
+    ? "Смотри на русское слово и нажимай на английский вариант."
+    : "Смотри на английское слово и нажимай на его перевод.";
+  const vocabularyCorrectAnswerText = isReverseVocabulary
+    ? `Правильное слово: ${correctAnswer.en} — ${question.prompt.ru}`
+    : `Правильный перевод: ${correctAnswer.ru} — ${question.prompt.en}`;
 
   elements.quizView.innerHTML = `
     <div class="quiz-shell" style="--accent:${section.accent}">
@@ -425,7 +451,7 @@ function renderQuestionView() {
 
       <div class="quiz-stats">
         <article class="quiz-stat">
-          <span>${isVocabulary ? "Слово" : "Вопрос"}</span>
+          <span>${isVocabulary ? "Задание" : "Вопрос"}</span>
           <strong>${state.questionIndex + 1} / ${state.questions.length}</strong>
         </article>
         <article class="quiz-stat">
@@ -445,43 +471,35 @@ function renderQuestionView() {
       <article class="quiz-card">
         <div class="quiz-card__header">
           <div>
-            <p class="eyebrow">${isVocabulary ? "Найди правильный перевод" : "Выбери правильный вариант"}</p>
+            <p class="eyebrow">${isVocabulary ? vocabularyEyebrow : "Выбери правильный вариант"}</p>
             <h2>${section.subtitle}</h2>
           </div>
-          <div class="translation-tools">
-            <button
-              class="mini-button"
-              data-action="toggle-prompt-translation"
-            >
-              ${
-                state.showPromptTranslation
-                  ? isVocabulary
-                    ? "Спрятать перевод"
-                    : "Показать английский"
-                  : isVocabulary
-                    ? "Показать перевод"
-                    : "Перевести предложение"
-              }
-            </button>
-            ${
-              isVocabulary
-                ? ""
-                : `
+          ${
+            isVocabulary
+              ? ""
+              : `
+                <div class="translation-tools">
+                  <button
+                    class="mini-button"
+                    data-action="toggle-prompt-translation"
+                  >
+                    ${state.showPromptTranslation ? "Показать английский" : "Перевести предложение"}
+                  </button>
                   <button
                     class="mini-button"
                     data-action="toggle-option-translation"
                   >
                     ${state.showOptionTranslation ? "Показать английский" : "Перевести варианты"}
                   </button>
-                `
-            }
-          </div>
+                </div>
+              `
+          }
         </div>
 
         <p class="quiz-card__hint">
           ${
             isVocabulary
-              ? "Смотри на английское слово и нажимай на его перевод."
+              ? vocabularyHintText
               : "Если нужно, включай перевод предложения и вариантов ответа."
           }
         </p>
@@ -514,7 +532,15 @@ function renderQuestionView() {
                     65 + index
                   )}</span>
                   <span class="option-button__text">
-                    ${isVocabulary ? answer.ru : state.showOptionTranslation ? answer.ru : answer.en}
+                    ${
+                      isVocabulary
+                        ? isReverseVocabulary
+                          ? answer.en
+                          : answer.ru
+                        : state.showOptionTranslation
+                          ? answer.ru
+                          : answer.en
+                    }
                   </span>
                 </button>
               `;
@@ -547,7 +573,7 @@ function renderQuestionView() {
                   <p class="feedback-card__answer">
                     ${
                       isVocabulary
-                        ? `Правильный перевод: ${correctAnswer.ru} — ${question.prompt.en}`
+                        ? vocabularyCorrectAnswerText
                         : `Правильный ответ: ${correctAnswer.en}${
                             state.showOptionTranslation ? ` — ${correctAnswer.ru}` : ""
                           }`
@@ -588,9 +614,7 @@ function renderResultView() {
         <h2>${section.title}</h2>
         <div class="result-card__score">${scoreLabel(state.score)}</div>
         <p class="result-card__lead">
-          ${
-            isVocabulary ? "Правильных переводов" : "Правильных ответов"
-          }: <strong>${state.correctAnswers}</strong> из
+          Правильных ответов: <strong>${state.correctAnswers}</strong> из
           <strong>${state.questions.length}</strong>.
         </p>
         <p class="result-card__message">${completionMessage(section)}</p>

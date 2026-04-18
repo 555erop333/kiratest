@@ -202,14 +202,20 @@ const buildWrongOptions = (word, topic) => {
   return uniqueWrongOptions;
 };
 
-const createVocabularyQuestion = (topic, word, index) => {
+const createVocabularyQuestion = (topic, word, index, direction = "en-ru") => {
+  const isReverse = direction === "ru-en";
   const options = shuffleWithSeed(
     [option(word.en, word.ru), ...buildWrongOptions(word, topic)],
-    `${topic.id}-${word.en}-options`
+    isReverse
+      ? `${topic.id}-${word.en}-reverse-options`
+      : `${topic.id}-${word.en}-options`
   );
 
   return {
-    id: `${topic.id}-${String(index + 1).padStart(2, "0")}`,
+    id: isReverse
+      ? `${topic.id}-reverse-${String(index + 1).padStart(2, "0")}`
+      : `${topic.id}-${String(index + 1).padStart(2, "0")}`,
+    direction,
     prompt: {
       en: word.en,
       ru: word.ru,
@@ -217,20 +223,30 @@ const createVocabularyQuestion = (topic, word, index) => {
     options,
     correctIndex: options.findIndex((item) => item.ru === word.ru),
     explanation: {
-      correct: `${word.en} переводится как «${word.ru}».`,
-      incorrect: `Запомни: ${word.en} значит «${word.ru}».`,
+      correct: isReverse
+        ? `«${word.ru}» по-английски будет ${word.en}.`
+        : `${word.en} переводится как «${word.ru}».`,
+      incorrect: isReverse
+        ? `Запомни: «${word.ru}» по-английски — ${word.en}.`
+        : `Запомни: ${word.en} значит «${word.ru}».`,
     },
   };
 };
 
 const sections = topics.map((topic) => {
-  const questions = topic.words.map((word, index) =>
-    createVocabularyQuestion(topic, word, index)
-  );
+  const questions = [
+    ...topic.words.map((word, index) =>
+      createVocabularyQuestion(topic, word, index)
+    ),
+    ...topic.words.map((word, index) =>
+      createVocabularyQuestion(topic, word, index, "ru-en")
+    ),
+  ];
 
   return {
     ...topic,
     type: "vocabulary",
+    wordCount: topic.words.length,
     questionCount: questions.length,
     questions,
   };
@@ -239,6 +255,7 @@ const sections = topics.map((topic) => {
 export const vocabularyBank = {
   version: "1.0.0",
   totalSections: sections.length,
+  totalWords: sections.reduce((sum, section) => sum + section.wordCount, 0),
   totalQuestions: sections.reduce((sum, section) => sum + section.questionCount, 0),
   sections,
 };

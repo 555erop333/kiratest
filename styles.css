@@ -249,6 +249,13 @@ h1 {
   scroll-margin-top: 16px;
 }
 
+.menu-view--vocabulary {
+  background:
+    radial-gradient(circle at top right, rgba(255, 176, 133, 0.16), transparent 36%),
+    radial-gradient(circle at bottom left, rgba(111, 194, 255, 0.14), transparent 34%),
+    var(--white-glass);
+}
+
 .section-heading {
   display: flex;
   justify-content: space-between;
@@ -282,6 +289,20 @@ h1 {
   border: 1px solid rgba(255, 255, 255, 0.85);
   transform: translateY(0);
   transition: transform 160ms ease;
+}
+
+.section-card__badge {
+  display: inline-flex;
+  width: fit-content;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: inset 0 0 0 1px rgba(125, 92, 149, 0.1);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
 }
 
 .section-card:hover {
@@ -318,6 +339,7 @@ h1 {
   justify-content: space-between;
   gap: 10px;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .section-card__meta,
@@ -442,6 +464,12 @@ button {
   font-size: 1.6rem;
 }
 
+.quiz-card__hint {
+  margin: 14px 0 0;
+  color: var(--ink-soft);
+  line-height: 1.6;
+}
+
 .quiz-card__prompt {
   margin: 22px 0 20px;
   padding: 22px;
@@ -450,6 +478,13 @@ button {
   font-size: clamp(1.24rem, 2.8vw, 1.72rem);
   line-height: 1.55;
   box-shadow: inset 0 0 0 1px rgba(125, 92, 149, 0.08);
+}
+
+.quiz-card__prompt--word {
+  text-align: center;
+  font-family: "Comfortaa", sans-serif;
+  font-size: clamp(1.9rem, 5vw, 2.7rem);
+  line-height: 1.3;
 }
 
 .options-grid {

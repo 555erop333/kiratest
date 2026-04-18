@@ -1,11 +1,26 @@
 import { questionBank } from "./questionBank.js";
+import { vocabularyBank } from "./vocabularyBank.js";
 
 const storageKey = "kira-english-quiz-progress";
+
+const grammarSections = questionBank.sections.map((section) => ({
+  ...section,
+  type: "grammar",
+}));
+
+const vocabularySections = vocabularyBank.sections.map((section) => ({
+  ...section,
+  type: "vocabulary",
+}));
+
+const allSections = [...grammarSections, ...vocabularySections];
 
 const elements = {
   heroSummary: document.querySelector("#heroSummary"),
   sectionGrid: document.querySelector("#sectionGrid"),
+  vocabularyGrid: document.querySelector("#vocabularyGrid"),
   menuView: document.querySelector("#menuView"),
+  vocabularyView: document.querySelector("#vocabularyView"),
   quizView: document.querySelector("#quizView"),
 };
 
@@ -83,7 +98,7 @@ function persistStorage() {
 }
 
 function getSectionById(sectionId) {
-  return questionBank.sections.find((section) => section.id === sectionId);
+  return allSections.find((section) => section.id === sectionId);
 }
 
 function getCurrentSection() {
@@ -92,6 +107,14 @@ function getCurrentSection() {
 
 function getCurrentQuestion() {
   return state.questions[state.questionIndex];
+}
+
+function isVocabularySection(section) {
+  return section?.type === "vocabulary";
+}
+
+function getQuestionCount(section) {
+  return section?.questionCount || section?.questions?.length || 0;
 }
 
 function normaliseScore(value) {
@@ -183,14 +206,24 @@ function applySavedSession(section, session) {
     section.questions.length
   );
   state.answered = Boolean(session.answered);
+
+  const optionsCount =
+    state.questions[state.questionIndex]?.options?.length || 0;
+
   state.selectedOptionIndex =
     Number.isInteger(session.selectedOptionIndex) &&
     session.selectedOptionIndex >= 0 &&
-    session.selectedOptionIndex < 4
+    session.selectedOptionIndex < optionsCount
       ? session.selectedOptionIndex
       : null;
-  state.showPromptTranslation = Boolean(session.showPromptTranslation);
-  state.showOptionTranslation = Boolean(session.showOptionTranslation);
+
+  if (typeof session.showPromptTranslation === "boolean") {
+    state.showPromptTranslation = session.showPromptTranslation;
+  }
+
+  if (typeof session.showOptionTranslation === "boolean") {
+    state.showOptionTranslation = session.showOptionTranslation;
+  }
 
   if (state.answered && state.selectedOptionIndex === null) {
     state.answered = false;
@@ -225,22 +258,30 @@ function scoreLabel(value) {
   return value > 0 ? `+${value}` : String(value);
 }
 
-function completionMessage() {
+function completionMessage(section) {
   const ratio = state.correctAnswers / state.questions.length;
 
   if (ratio >= 0.9) {
-    return "Очень сильный результат. Можно идти за следующей звёздочкой.";
+    return isVocabularySection(section)
+      ? "Слова держатся очень уверенно. Можно переходить к следующей теме."
+      : "Очень сильный результат. Можно идти за следующей звёздочкой.";
   }
 
   if (ratio >= 0.75) {
-    return "Отлично. Тема уже хорошо держится, осталось немного закрепить.";
+    return isVocabularySection(section)
+      ? "Отлично. Эти слова уже хорошо запомнились."
+      : "Отлично. Тема уже хорошо держится, осталось немного закрепить.";
   }
 
   if (ratio >= 0.5) {
-    return "Хорошая тренировка. Повтори раздел ещё раз и результат вырастет.";
+    return isVocabularySection(section)
+      ? "Хорошая словарная тренировка. Один повтор сделает результат заметно лучше."
+      : "Хорошая тренировка. Повтори раздел ещё раз и результат вырастет.";
   }
 
-  return "Это тоже полезно: теперь видно, какие правила стоит повторить ещё раз.";
+  return isVocabularySection(section)
+    ? "Теперь видно, какие слова стоит повторить ещё раз."
+    : "Это тоже полезно: теперь видно, какие правила стоит повторить ещё раз.";
 }
 
 function renderHeroSummary() {
@@ -259,14 +300,14 @@ function renderHeroSummary() {
 
   elements.heroSummary.innerHTML = `
     <article class="summary-card">
-      <span class="summary-card__label">Разделов</span>
+      <span class="summary-card__label">Грамматика</span>
       <strong>${questionBank.totalSections}</strong>
-      <span class="summary-card__sub">готовы к прохождению</span>
+      <span class="summary-card__sub">${questionBank.totalQuestions} вопросов по правилам</span>
     </article>
     <article class="summary-card">
-      <span class="summary-card__label">Вопросов</span>
-      <strong>${questionBank.totalQuestions}</strong>
-      <span class="summary-card__sub">по всем темам</span>
+      <span class="summary-card__label">Словарь</span>
+      <strong>${vocabularyBank.totalSections}</strong>
+      <span class="summary-card__sub">${vocabularyBank.totalQuestions} слов для повторения</span>
     </article>
     <article class="summary-card">
       <span class="summary-card__label">Пройдено тем</span>
@@ -281,34 +322,46 @@ function renderHeroSummary() {
   `;
 }
 
-function renderSectionCards() {
-  elements.sectionGrid.innerHTML = questionBank.sections
+function renderDeckCards(targetElement, sections) {
+  if (!targetElement) {
+    return;
+  }
+
+  targetElement.innerHTML = sections
     .map((section) => {
       const progress = state.progress[section.id];
       const savedSession =
         state.savedSession?.sectionId === section.id ? state.savedSession : null;
+      const questionCount = getQuestionCount(section);
+      const isVocabulary = isVocabularySection(section);
       const bestScore = progress ? scoreLabel(progress.bestScore) : "ещё нет";
-      const bestCorrect = progress ? `${progress.bestCorrect}/100` : "0/100";
+      const bestCorrect = progress
+        ? `${progress.bestCorrect}/${questionCount}`
+        : `0/${questionCount}`;
       const fill = progress
-        ? Math.max(8, Math.round((progress.bestCorrect / 100) * 100))
+        ? Math.max(8, Math.round((progress.bestCorrect / questionCount) * 100))
         : savedSession
-          ? Math.max(8, Math.round(((savedSession.questionIndex + 1) / 100) * 100))
+          ? Math.max(
+              8,
+              Math.round(((savedSession.questionIndex + 1) / questionCount) * 100)
+            )
           : 8;
       const footerText = savedSession
-        ? `Продолжить с вопроса ${savedSession.questionIndex + 1}`
+        ? `Продолжить с ${isVocabulary ? "слова" : "вопроса"} ${savedSession.questionIndex + 1}`
         : `Верно: ${bestCorrect}`;
       const resumeText = savedSession
-        ? `Сохранено: счёт ${scoreLabel(savedSession.score)}, правильных ответов ${savedSession.correctAnswers}`
+        ? `Сохранено: счёт ${scoreLabel(savedSession.score)}, правильных ${savedSession.correctAnswers}/${questionCount}`
         : "";
 
       return `
-        <article class="section-card" style="--accent:${section.accent}">
+        <article class="section-card section-card--${section.type}" style="--accent:${section.accent}">
           <div class="section-card__gloss"></div>
+          <span class="section-card__badge">${isVocabulary ? "Словарь" : "Грамматика"}</span>
           <p class="section-card__subtitle">${section.subtitle}</p>
           <h3>${section.title}</h3>
           <p class="section-card__description">${section.description}</p>
           <div class="section-card__meta">
-            <span>100 вопросов</span>
+            <span>${questionCount} ${isVocabulary ? "слов" : "вопросов"}</span>
             <span>Лучший счёт: ${bestScore}</span>
           </div>
           <div class="section-card__meter">
@@ -321,7 +374,7 @@ function renderSectionCards() {
               data-action="start-section"
               data-section-id="${section.id}"
             >
-              ${savedSession ? "Продолжить" : "Начать"}
+              ${savedSession ? "Продолжить" : isVocabulary ? "Учить слова" : "Начать"}
             </button>
           </div>
           ${
@@ -335,29 +388,44 @@ function renderSectionCards() {
     .join("");
 }
 
+function renderSectionCards() {
+  renderDeckCards(elements.sectionGrid, grammarSections);
+}
+
+function renderVocabularyCards() {
+  renderDeckCards(elements.vocabularyGrid, vocabularySections);
+}
+
 function renderMenuState() {
   const shouldShowMenu = !state.activeSectionId;
+
   elements.menuView.classList.toggle("hidden", !shouldShowMenu);
+  elements.vocabularyView.classList.toggle("hidden", !shouldShowMenu);
   elements.quizView.classList.toggle("hidden", shouldShowMenu);
 }
 
 function renderQuestionView() {
   const section = getCurrentSection();
   const question = getCurrentQuestion();
+  const isVocabulary = isVocabularySection(section);
   const progressValue = ((state.questionIndex + 1) / state.questions.length) * 100;
   const feedbackClass =
     state.selectedOptionIndex === question.correctIndex ? "correct" : "wrong";
+  const correctAnswer = question.options[question.correctIndex];
+  const promptText = state.showPromptTranslation
+    ? question.prompt.ru
+    : question.prompt.en;
 
   elements.quizView.innerHTML = `
     <div class="quiz-shell" style="--accent:${section.accent}">
       <div class="quiz-shell__top">
-        <button class="ghost-button" data-action="back-to-menu">Выбрать раздел</button>
-        <span class="quiz-shell__pill">${section.title}</span>
+        <button class="ghost-button" data-action="back-to-menu">К темам</button>
+        <span class="quiz-shell__pill">${isVocabulary ? "Словарь" : "Грамматика"} • ${section.title}</span>
       </div>
 
       <div class="quiz-stats">
         <article class="quiz-stat">
-          <span>Вопрос</span>
+          <span>${isVocabulary ? "Слово" : "Вопрос"}</span>
           <strong>${state.questionIndex + 1} / ${state.questions.length}</strong>
         </article>
         <article class="quiz-stat">
@@ -377,7 +445,7 @@ function renderQuestionView() {
       <article class="quiz-card">
         <div class="quiz-card__header">
           <div>
-            <p class="eyebrow">Выбери правильный вариант</p>
+            <p class="eyebrow">${isVocabulary ? "Найди правильный перевод" : "Выбери правильный вариант"}</p>
             <h2>${section.subtitle}</h2>
           </div>
           <div class="translation-tools">
@@ -385,19 +453,41 @@ function renderQuestionView() {
               class="mini-button"
               data-action="toggle-prompt-translation"
             >
-              ${state.showPromptTranslation ? "Показать английский" : "Перевести предложение"}
+              ${
+                state.showPromptTranslation
+                  ? isVocabulary
+                    ? "Спрятать перевод"
+                    : "Показать английский"
+                  : isVocabulary
+                    ? "Показать перевод"
+                    : "Перевести предложение"
+              }
             </button>
-            <button
-              class="mini-button"
-              data-action="toggle-option-translation"
-            >
-              ${state.showOptionTranslation ? "Показать английский" : "Перевести варианты"}
-            </button>
+            ${
+              isVocabulary
+                ? ""
+                : `
+                  <button
+                    class="mini-button"
+                    data-action="toggle-option-translation"
+                  >
+                    ${state.showOptionTranslation ? "Показать английский" : "Перевести варианты"}
+                  </button>
+                `
+            }
           </div>
         </div>
 
-        <p class="quiz-card__prompt">
-          ${state.showPromptTranslation ? question.prompt.ru : question.prompt.en}
+        <p class="quiz-card__hint">
+          ${
+            isVocabulary
+              ? "Смотри на английское слово и нажимай на его перевод."
+              : "Если нужно, включай перевод предложения и вариантов ответа."
+          }
+        </p>
+
+        <p class="quiz-card__prompt ${isVocabulary ? "quiz-card__prompt--word" : ""}">
+          ${promptText}
         </p>
 
         <div class="options-grid">
@@ -424,7 +514,7 @@ function renderQuestionView() {
                     65 + index
                   )}</span>
                   <span class="option-button__text">
-                    ${state.showOptionTranslation ? answer.ru : answer.en}
+                    ${isVocabulary ? answer.ru : state.showOptionTranslation ? answer.ru : answer.en}
                   </span>
                 </button>
               `;
@@ -455,17 +545,20 @@ function renderQuestionView() {
                       : question.explanation.incorrect
                   }</p>
                   <p class="feedback-card__answer">
-                    Правильный ответ: ${
-                      question.options[question.correctIndex].en
+                    ${
+                      isVocabulary
+                        ? `Правильный перевод: ${correctAnswer.ru} — ${question.prompt.en}`
+                        : `Правильный ответ: ${correctAnswer.en}${
+                            state.showOptionTranslation ? ` — ${correctAnswer.ru}` : ""
+                          }`
                     }
-                    ${state.showOptionTranslation ? ` — ${question.options[question.correctIndex].ru}` : ""}
                   </p>
                 </div>
                 <button class="primary-button" data-action="next-question">
                   ${
                     state.questionIndex === state.questions.length - 1
                       ? "Показать результат"
-                      : "Следующий вопрос"
+                      : "Следующее задание"
                   }
                 </button>
               </section>
@@ -480,23 +573,27 @@ function renderQuestionView() {
 function renderResultView() {
   const section = getCurrentSection();
   const progress = state.progress[section.id];
+  const isVocabulary = isVocabularySection(section);
+  const questionCount = getQuestionCount(section);
 
   elements.quizView.innerHTML = `
     <div class="quiz-shell" style="--accent:${section.accent}">
       <div class="quiz-shell__top">
-        <button class="ghost-button" data-action="back-to-menu">Выбрать раздел</button>
-        <span class="quiz-shell__pill">Раздел завершён</span>
+        <button class="ghost-button" data-action="back-to-menu">К темам</button>
+        <span class="quiz-shell__pill">${isVocabulary ? "Словарная тема завершена" : "Раздел завершён"}</span>
       </div>
 
       <article class="result-card">
-        <p class="eyebrow">Финиш по теме</p>
+        <p class="eyebrow">${isVocabulary ? "Финиш по словам" : "Финиш по теме"}</p>
         <h2>${section.title}</h2>
         <div class="result-card__score">${scoreLabel(state.score)}</div>
         <p class="result-card__lead">
-          Правильных ответов: <strong>${state.correctAnswers}</strong> из
+          ${
+            isVocabulary ? "Правильных переводов" : "Правильных ответов"
+          }: <strong>${state.correctAnswers}</strong> из
           <strong>${state.questions.length}</strong>.
         </p>
-        <p class="result-card__message">${completionMessage()}</p>
+        <p class="result-card__message">${completionMessage(section)}</p>
 
         <div class="result-card__stats">
           <div>
@@ -505,7 +602,7 @@ function renderResultView() {
           </div>
           <div>
             <span>Лучший результат</span>
-            <strong>${progress.bestCorrect}/100</strong>
+            <strong>${progress.bestCorrect}/${questionCount}</strong>
           </div>
           <div>
             <span>Попыток</span>
@@ -547,6 +644,7 @@ function renderQuizState() {
 function render() {
   renderHeroSummary();
   renderSectionCards();
+  renderVocabularyCards();
   renderMenuState();
   renderQuizState();
 }
@@ -630,13 +728,25 @@ function goToNextQuestion() {
   renderQuizState();
 }
 
-function renderMainMenu(shouldSmoothScroll = true) {
+function renderMainMenu(
+  shouldSmoothScroll = true,
+  targetElement = elements.menuView
+) {
   clearActiveQuizState();
   render();
-  elements.menuView?.scrollIntoView({
+  targetElement?.scrollIntoView({
     behavior: shouldSmoothScroll ? "smooth" : "auto",
     block: "start",
   });
+}
+
+function showMenu(targetElement = elements.menuView, shouldSmoothScroll = true) {
+  if (state.activeSectionId && !state.completed) {
+    persistCurrentSession();
+  }
+
+  syncHistoryState(menuHistoryState(), "replace");
+  renderMainMenu(shouldSmoothScroll, targetElement);
 }
 
 function backToMenu(fromHistory = false) {
@@ -645,17 +755,7 @@ function backToMenu(fromHistory = false) {
     return;
   }
 
-  if (state.activeSectionId && !state.completed) {
-    persistCurrentSession();
-  }
-
-  if (window.history.state?.view === "quiz") {
-    window.history.back();
-    return;
-  }
-
-  syncHistoryState(menuHistoryState(), "replace");
-  renderMainMenu(true);
+  showMenu(elements.menuView, true);
 }
 
 function handlePopState(event) {
@@ -666,7 +766,7 @@ function handlePopState(event) {
     return;
   }
 
-  backToMenu(true);
+  renderMainMenu(false);
 }
 
 document.addEventListener("click", (event) => {
@@ -682,11 +782,26 @@ document.addEventListener("click", (event) => {
     event.preventDefault();
 
     if (state.activeSectionId) {
-      backToMenu();
+      showMenu(elements.menuView, true);
       return;
     }
 
     elements.menuView?.scrollIntoView({ behavior: "smooth", block: "start" });
+    return;
+  }
+
+  if (action === "scroll-vocabulary") {
+    event.preventDefault();
+
+    if (state.activeSectionId) {
+      showMenu(elements.vocabularyView, true);
+      return;
+    }
+
+    elements.vocabularyView?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
     return;
   }
 

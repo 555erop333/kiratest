@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="Красивый сайт с тестами по английскому языку для 4 класса: 9 разделов и 900 вопросов."
+      content="Сайт по английскому языку для 4 класса: грамматические тесты и словарный тренажёр по темам."
     />
     <title>Sunny English Garden</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -37,11 +37,12 @@
 
       <header class="hero">
         <div class="hero__copy">
-          <p class="eyebrow">9 разделов • 900 вопросов • английский для 4 класса</p>
+          <p class="eyebrow">9 грамматических разделов • словарный тренажёр • английский для 4 класса</p>
           <h1>Sunny English Garden</h1>
           <p class="hero__lead">
-            Нажимай на тему, отвечай на вопросы по одному, включай перевод и собирай
-            очки. После каждого ответа сайт сразу покажет маленькое пояснение.
+            Здесь можно тренировать и грамматику, и слова. Выбирай тему, отвечай по
+            одному заданию, ищи правильный перевод и сразу смотри маленькую подсказку
+            после ответа.
           </p>
           <div class="hero__actions">
             <a
@@ -49,11 +50,18 @@
               href="#menuView"
               data-action="scroll-sections"
             >
-              Выбрать раздел
+              Грамматика
+            </a>
+            <a
+              class="secondary-button"
+              href="#vocabularyView"
+              data-action="scroll-vocabulary"
+            >
+              Словарный тренажёр
             </a>
             <p class="hero__note">
-              Результаты сохраняются в браузере, поэтому можно возвращаться к любимым
-              темам.
+              Результаты сохраняются в браузере, поэтому можно возвращаться и к
+              грамматике, и к словарным темам.
             </p>
           </div>
         </div>
@@ -65,8 +73,8 @@
         <section class="menu-view" id="menuView">
           <div class="section-heading">
             <div>
-              <p class="eyebrow">Меню разделов</p>
-              <h2>Выбирай тренировку</h2>
+              <p class="eyebrow">Грамматические тесты</p>
+              <h2>Выбирай раздел</h2>
             </div>
             <p class="section-heading__text">
               В каждом разделе по 100 вопросов. Сначала показывается английское
@@ -75,6 +83,21 @@
           </div>
 
           <div class="section-grid" id="sectionGrid"></div>
+        </section>
+
+        <section class="menu-view menu-view--vocabulary" id="vocabularyView">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Слова по темам</p>
+              <h2>Словарный тренажёр</h2>
+            </div>
+            <p class="section-heading__text">
+              Здесь нужно выбрать правильный перевод слова. Темы собраны по словам из
+              тетради: профессии, город, кемпинг, эмоции и летний отдых.
+            </p>
+          </div>
+
+          <div class="section-grid" id="vocabularyGrid"></div>
         </section>
 
         <section class="quiz-view hidden" id="quizView" aria-live="polite"></section>

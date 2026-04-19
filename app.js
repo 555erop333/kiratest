@@ -2,6 +2,8 @@ import { questionBank } from "./questionBank.js";
 import { vocabularyBank } from "./vocabularyBank.js";
 
 const storageKey = "kira-english-quiz-progress";
+const assessmentSectionId = "assessment-work";
+const assessmentQuestionsPerSection = 3;
 
 const grammarSections = questionBank.sections.map((section) => ({
   ...section,
@@ -72,6 +74,7 @@ const state = {
   progress: storedData.stats,
   savedSession: storedData.session,
   activeSectionId: null,
+  activeSection: null,
   questions: [],
   questionIndex: 0,
   score: 0,
@@ -81,6 +84,8 @@ const state = {
   showPromptTranslation: false,
   showOptionTranslation: false,
   completed: false,
+  answerHistory: [],
+  quizMode: "section",
 };
 
 function persistStorage() {
@@ -102,7 +107,7 @@ function getSectionById(sectionId) {
 }
 
 function getCurrentSection() {
-  return getSectionById(state.activeSectionId);
+  return state.activeSection || getSectionById(state.activeSectionId);
 }
 
 function getCurrentQuestion() {
@@ -111,6 +116,10 @@ function getCurrentQuestion() {
 
 function isVocabularySection(section) {
   return section?.type === "vocabulary";
+}
+
+function isAssessmentSection(section) {
+  return section?.type === "assessment";
 }
 
 function isReverseVocabularyQuestion(question) {
@@ -129,8 +138,106 @@ function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
 }
 
+function shuffleArray(items) {
+  const copy = [...items];
+
+  for (let index = copy.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1));
+    [copy[index], copy[swapIndex]] = [copy[swapIndex], copy[index]];
+  }
+
+  return copy;
+}
+
+function sampleItems(items, count) {
+  return shuffleArray(items).slice(0, Math.min(count, items.length));
+}
+
+function getQuestionSectionType(section, question) {
+  if (isAssessmentSection(section)) {
+    return question?.assessmentMeta?.sectionType || "grammar";
+  }
+
+  return section?.type;
+}
+
+function createAssessmentQuestion(question, sourceSection, index) {
+  return {
+    ...question,
+    id: `${assessmentSectionId}-${sourceSection.id}-${index}-${question.id}`,
+    assessmentMeta: {
+      sectionId: sourceSection.id,
+      sectionTitle: sourceSection.title,
+      sectionSubtitle: sourceSection.subtitle,
+      sectionType: sourceSection.type,
+      sectionAccent: sourceSection.accent,
+    },
+  };
+}
+
+function buildVocabularyAssessmentQuestions(section) {
+  const questionGroups = new Map();
+
+  section.questions.forEach((question) => {
+    const key = `${question.prompt.en}::${question.prompt.ru}`;
+
+    if (!questionGroups.has(key)) {
+      questionGroups.set(key, []);
+    }
+
+    questionGroups.get(key).push(question);
+  });
+
+  return sampleItems(
+    Array.from(questionGroups.values()),
+    assessmentQuestionsPerSection
+  ).map((group, index) =>
+    createAssessmentQuestion(sampleItems(group, 1)[0], section, index)
+  );
+}
+
+function buildAssessmentQuestionsForSection(section) {
+  if (isVocabularySection(section)) {
+    return buildVocabularyAssessmentQuestions(section);
+  }
+
+  return sampleItems(section.questions, assessmentQuestionsPerSection).map(
+    (question, index) => createAssessmentQuestion(question, section, index)
+  );
+}
+
+function createAssessmentSection() {
+  const sourceSections = [...grammarSections, ...vocabularySections];
+  const questions = shuffleArray(
+    sourceSections.flatMap((section) => buildAssessmentQuestionsForSection(section))
+  );
+
+  return {
+    id: assessmentSectionId,
+    type: "assessment",
+    title: "Проверочная работа",
+    subtitle: "Progress Check",
+    description:
+      "Смешанная работа без подсказок: по 3 случайных задания из каждого правила и каждой словарной темы.",
+    accent: "#6f8cff",
+    questionCount: questions.length,
+    questions,
+    grammarQuestionCount: grammarSections.length * assessmentQuestionsPerSection,
+    vocabularyQuestionCount:
+      vocabularySections.length * assessmentQuestionsPerSection,
+    sectionSummaries: sourceSections.map((section) => ({
+      id: section.id,
+      title: section.title,
+      subtitle: section.subtitle,
+      type: section.type,
+      total: assessmentQuestionsPerSection,
+    })),
+  };
+}
+
 function clearActiveQuizState() {
   state.activeSectionId = null;
+  state.activeSection = null;
   state.questions = [];
   state.questionIndex = 0;
   state.score = 0;
@@ -140,6 +247,8 @@ function clearActiveQuizState() {
   state.showPromptTranslation = false;
   state.showOptionTranslation = false;
   state.completed = false;
+  state.answerHistory = [];
+  state.quizMode = "section";
 }
 
 function syncHistoryState(nextState, mode = "replace") {
@@ -156,7 +265,7 @@ function syncHistoryState(nextState, mode = "replace") {
 }
 
 function buildSessionSnapshot() {
-  if (!state.activeSectionId || state.completed) {
+  if (!state.activeSectionId || state.completed || state.quizMode === "assessment") {
     return null;
   }
 
@@ -173,7 +282,13 @@ function buildSessionSnapshot() {
 }
 
 function persistCurrentSession() {
-  state.savedSession = buildSessionSnapshot();
+  const snapshot = buildSessionSnapshot();
+
+  if (!snapshot) {
+    return;
+  }
+
+  state.savedSession = snapshot;
   persistStorage();
 }
 
@@ -182,8 +297,9 @@ function clearSavedSession() {
   persistStorage();
 }
 
-function applyFreshSectionState(section) {
+function applyFreshSectionState(section, quizMode = "section") {
   state.activeSectionId = section.id;
+  state.activeSection = section;
   state.questions = section.questions;
   state.questionIndex = 0;
   state.score = 0;
@@ -193,6 +309,8 @@ function applyFreshSectionState(section) {
   state.showPromptTranslation = false;
   state.showOptionTranslation = false;
   state.completed = false;
+  state.answerHistory = [];
+  state.quizMode = quizMode;
 }
 
 function applySavedSession(section, session) {
@@ -291,6 +409,90 @@ function completionMessage(section) {
   return isVocabularySection(section)
     ? "Теперь видно, какие слова стоит повторить ещё раз."
     : "Это тоже полезно: теперь видно, какие правила стоит повторить ещё раз.";
+}
+
+function assessmentCompletionMessage(ratio) {
+  if (ratio >= 0.9) {
+    return "Очень сильный результат. Проверочная работа пройдена уверенно и без заметных провалов.";
+  }
+
+  if (ratio >= 0.75) {
+    return "Хороший уровень. Ошибки точечные, их можно быстро добрать повтором слабых тем.";
+  }
+
+  if (ratio >= 0.5) {
+    return "База уже есть, но часть правил и слов пока держится нестабильно. Смотри разбивку по темам ниже.";
+  }
+
+  return "Проверочная работа показала, что сначала стоит спокойно повторить базовые правила и словарные темы.";
+}
+
+function buildAssessmentSummary(section) {
+  const sectionResults = section.sectionSummaries.map((item) => ({
+    ...item,
+    correct: 0,
+  }));
+  const resultsMap = new Map(
+    sectionResults.map((item) => [item.id, item])
+  );
+
+  state.answerHistory.forEach((entry) => {
+    const target = resultsMap.get(entry.sectionId);
+
+    if (target && entry.correct) {
+      target.correct += 1;
+    }
+  });
+
+  sectionResults.forEach((item) => {
+    item.incorrect = item.total - item.correct;
+  });
+
+  const grammarResults = sectionResults.filter((item) => item.type === "grammar");
+  const vocabularyResults = sectionResults.filter(
+    (item) => item.type === "vocabulary"
+  );
+  const sumCorrect = (items) =>
+    items.reduce((sum, item) => sum + item.correct, 0);
+  const sumTotal = (items) => items.reduce((sum, item) => sum + item.total, 0);
+  const total = state.questions.length;
+  const correct = state.correctAnswers;
+
+  return {
+    total,
+    correct,
+    incorrect: total - correct,
+    ratio: total ? correct / total : 0,
+    percentage: total ? Math.round((correct / total) * 100) : 0,
+    grammarResults,
+    vocabularyResults,
+    grammarCorrect: sumCorrect(grammarResults),
+    grammarTotal: sumTotal(grammarResults),
+    vocabularyCorrect: sumCorrect(vocabularyResults),
+    vocabularyTotal: sumTotal(vocabularyResults),
+    sectionCount: sectionResults.length,
+  };
+}
+
+function renderAssessmentBreakdown(items) {
+  return items
+    .map((item) => {
+      const toneClass =
+        item.correct === item.total
+          ? "assessment-breakdown__item--strong"
+          : item.correct >= Math.ceil(item.total / 2)
+            ? "assessment-breakdown__item--mid"
+            : "assessment-breakdown__item--weak";
+
+      return `
+        <article class="assessment-breakdown__item ${toneClass}">
+          <span class="assessment-breakdown__subtitle">${item.subtitle}</span>
+          <strong>${item.title}</strong>
+          <span class="assessment-breakdown__score">${item.correct}/${item.total}</span>
+        </article>
+      `;
+    })
+    .join("");
 }
 
 function renderHeroSummary() {
@@ -419,12 +621,20 @@ function renderMenuState() {
 function renderQuestionView() {
   const section = getCurrentSection();
   const question = getCurrentQuestion();
-  const isVocabulary = isVocabularySection(section);
+  const isAssessment = isAssessmentSection(section);
+  const isVocabulary = getQuestionSectionType(section, question) === "vocabulary";
   const isReverseVocabulary = isVocabulary && isReverseVocabularyQuestion(question);
   const progressValue = ((state.questionIndex + 1) / state.questions.length) * 100;
-  const feedbackClass =
-    state.selectedOptionIndex === question.correctIndex ? "correct" : "wrong";
   const correctAnswer = question.options[question.correctIndex];
+  const sourceTitle = isAssessment
+    ? question.assessmentMeta.sectionTitle
+    : section.title;
+  const sourceSubtitle = isAssessment
+    ? question.assessmentMeta.sectionSubtitle
+    : section.subtitle;
+  const shellAccent = isAssessment
+    ? question.assessmentMeta.sectionAccent
+    : section.accent;
   const promptText = isVocabulary
     ? isReverseVocabulary
       ? question.prompt.ru
@@ -438,30 +648,58 @@ function renderQuestionView() {
   const vocabularyHintText = isReverseVocabulary
     ? "Смотри на русское слово и нажимай на английский вариант."
     : "Смотри на английское слово и нажимай на его перевод.";
-  const vocabularyCorrectAnswerText = isReverseVocabulary
-    ? `Правильное слово: ${correctAnswer.en} — ${question.prompt.ru}`
-    : `Правильный перевод: ${correctAnswer.ru} — ${question.prompt.en}`;
+  const headerEyebrow = isAssessment
+    ? isVocabulary
+      ? vocabularyEyebrow
+      : "Проверочная работа без подсказок"
+    : isVocabulary
+      ? vocabularyEyebrow
+      : "Выбери правильный вариант";
+  const hintText = isAssessment
+    ? "Переводы, подсказки и разбор ответов отключены до конца проверочной работы."
+    : isVocabulary
+      ? vocabularyHintText
+      : "Если нужно, включай перевод предложения и вариантов ответа.";
 
   elements.quizView.innerHTML = `
-    <div class="quiz-shell" style="--accent:${section.accent}">
+    <div class="quiz-shell" style="--accent:${shellAccent}">
       <div class="quiz-shell__top">
         <button class="ghost-button" data-action="back-to-menu">К темам</button>
-        <span class="quiz-shell__pill">${isVocabulary ? "Словарь" : "Грамматика"} • ${section.title}</span>
+        <span class="quiz-shell__pill">${
+          isAssessment
+            ? `Проверочная работа • ${sourceTitle}`
+            : `${isVocabulary ? "Словарь" : "Грамматика"} • ${section.title}`
+        }</span>
       </div>
 
       <div class="quiz-stats">
         <article class="quiz-stat">
-          <span>${isVocabulary ? "Задание" : "Вопрос"}</span>
+          <span>${isAssessment || isVocabulary ? "Задание" : "Вопрос"}</span>
           <strong>${state.questionIndex + 1} / ${state.questions.length}</strong>
         </article>
-        <article class="quiz-stat">
-          <span>Очки</span>
-          <strong>${scoreLabel(state.score)}</strong>
-        </article>
-        <article class="quiz-stat">
-          <span>Верно</span>
-          <strong>${state.correctAnswers}</strong>
-        </article>
+        ${
+          isAssessment
+            ? `
+              <article class="quiz-stat">
+                <span>Грамматика</span>
+                <strong>${section.grammarQuestionCount}</strong>
+              </article>
+              <article class="quiz-stat">
+                <span>Словарь</span>
+                <strong>${section.vocabularyQuestionCount}</strong>
+              </article>
+            `
+            : `
+              <article class="quiz-stat">
+                <span>Очки</span>
+                <strong>${scoreLabel(state.score)}</strong>
+              </article>
+              <article class="quiz-stat">
+                <span>Верно</span>
+                <strong>${state.correctAnswers}</strong>
+              </article>
+            `
+        }
       </div>
 
       <div class="progress-line">
@@ -471,11 +709,16 @@ function renderQuestionView() {
       <article class="quiz-card">
         <div class="quiz-card__header">
           <div>
-            <p class="eyebrow">${isVocabulary ? vocabularyEyebrow : "Выбери правильный вариант"}</p>
-            <h2>${section.subtitle}</h2>
+            <p class="eyebrow">${headerEyebrow}</p>
+            <h2>${isAssessment ? sourceTitle : section.subtitle}</h2>
+            ${
+              isAssessment
+                ? `<p class="quiz-card__source">${sourceSubtitle}</p>`
+                : ""
+            }
           </div>
           ${
-            isVocabulary
+            isVocabulary || isAssessment
               ? ""
               : `
                 <div class="translation-tools">
@@ -497,11 +740,7 @@ function renderQuestionView() {
         </div>
 
         <p class="quiz-card__hint">
-          ${
-            isVocabulary
-              ? vocabularyHintText
-              : "Если нужно, включай перевод предложения и вариантов ответа."
-          }
+          ${hintText}
         </p>
 
         <p class="quiz-card__prompt ${isVocabulary ? "quiz-card__prompt--word" : ""}">
@@ -514,11 +753,15 @@ function renderQuestionView() {
               const isSelected = index === state.selectedOptionIndex;
               const isCorrect = index === question.correctIndex;
               const stateClass = state.answered
-                ? isCorrect
-                  ? "option-button--correct"
-                  : isSelected
-                    ? "option-button--wrong"
+                ? isAssessment
+                  ? isSelected
+                    ? "option-button--selected"
                     : "option-button--locked"
+                  : isCorrect
+                    ? "option-button--correct"
+                    : isSelected
+                      ? "option-button--wrong"
+                      : "option-button--locked"
                 : "";
 
               return `
@@ -551,43 +794,72 @@ function renderQuestionView() {
         ${
           state.answered
             ? `
-              <section class="feedback-card feedback-card--${feedbackClass}">
-                <div class="feedback-card__score">
-                  ${
-                    state.selectedOptionIndex === question.correctIndex
-                      ? "+1 очко"
-                      : "-1 очко"
-                  }
-                </div>
-                <div class="feedback-card__text">
-                  <strong>${
-                    state.selectedOptionIndex === question.correctIndex
-                      ? "Правильно!"
-                      : "Почти, попробуй дальше."
-                  }</strong>
-                  <p>${
-                    state.selectedOptionIndex === question.correctIndex
-                      ? question.explanation.correct
-                      : question.explanation.incorrect
-                  }</p>
-                  <p class="feedback-card__answer">
-                    ${
-                      isVocabulary
-                        ? vocabularyCorrectAnswerText
-                        : `Правильный ответ: ${correctAnswer.en}${
-                            state.showOptionTranslation ? ` — ${correctAnswer.ru}` : ""
-                          }`
-                    }
-                  </p>
-                </div>
-                <button class="primary-button" data-action="next-question">
-                  ${
-                    state.questionIndex === state.questions.length - 1
-                      ? "Показать результат"
-                      : "Следующее задание"
-                  }
-                </button>
-              </section>
+              ${
+                isAssessment
+                  ? `
+                    <section class="feedback-card feedback-card--neutral">
+                      <div class="feedback-card__score">Ответ принят</div>
+                      <div class="feedback-card__text">
+                        <strong>Результат этого задания откроется в конце.</strong>
+                        <p>Проверочная работа идёт без подсказок и без показа правильного ответа по ходу.</p>
+                      </div>
+                      <button class="primary-button" data-action="next-question">
+                        ${
+                          state.questionIndex === state.questions.length - 1
+                            ? "Показать итог"
+                            : "Следующее задание"
+                        }
+                      </button>
+                    </section>
+                  `
+                  : `
+                    <section class="feedback-card feedback-card--${
+                      state.selectedOptionIndex === question.correctIndex
+                        ? "correct"
+                        : "wrong"
+                    }">
+                      <div class="feedback-card__score">
+                        ${
+                          state.selectedOptionIndex === question.correctIndex
+                            ? "+1 очко"
+                            : "-1 очко"
+                        }
+                      </div>
+                      <div class="feedback-card__text">
+                        <strong>${
+                          state.selectedOptionIndex === question.correctIndex
+                            ? "Правильно!"
+                            : "Почти, попробуй дальше."
+                        }</strong>
+                        <p>${
+                          state.selectedOptionIndex === question.correctIndex
+                            ? question.explanation.correct
+                            : question.explanation.incorrect
+                        }</p>
+                        <p class="feedback-card__answer">
+                          ${
+                            isVocabulary
+                              ? isReverseVocabulary
+                                ? `Правильное слово: ${correctAnswer.en} — ${question.prompt.ru}`
+                                : `Правильный перевод: ${correctAnswer.ru} — ${question.prompt.en}`
+                              : `Правильный ответ: ${correctAnswer.en}${
+                                  state.showOptionTranslation
+                                    ? ` — ${correctAnswer.ru}`
+                                    : ""
+                                }`
+                          }
+                        </p>
+                      </div>
+                      <button class="primary-button" data-action="next-question">
+                        ${
+                          state.questionIndex === state.questions.length - 1
+                            ? "Показать результат"
+                            : "Следующее задание"
+                        }
+                      </button>
+                    </section>
+                  `
+              }
             `
             : ""
         }
@@ -596,8 +868,77 @@ function renderQuestionView() {
   `;
 }
 
+function renderAssessmentResultView(section) {
+  const summary = buildAssessmentSummary(section);
+
+  elements.quizView.innerHTML = `
+    <div class="quiz-shell" style="--accent:${section.accent}">
+      <div class="quiz-shell__top">
+        <button class="ghost-button" data-action="back-to-menu">К темам</button>
+        <span class="quiz-shell__pill">Проверочная работа завершена</span>
+      </div>
+
+      <article class="result-card">
+        <p class="eyebrow">Финиш без подсказок</p>
+        <h2>${section.title}</h2>
+        <div class="result-card__score">${summary.correct}/${summary.total}</div>
+        <p class="result-card__lead">
+          Верных ответов: <strong>${summary.correct}</strong> из
+          <strong>${summary.total}</strong>. Процент выполнения:
+          <strong>${summary.percentage}%</strong>.
+        </p>
+        <p class="result-card__message">${assessmentCompletionMessage(summary.ratio)}</p>
+
+        <div class="result-card__stats">
+          <div>
+            <span>Грамматика</span>
+            <strong>${summary.grammarCorrect}/${summary.grammarTotal}</strong>
+          </div>
+          <div>
+            <span>Словарь</span>
+            <strong>${summary.vocabularyCorrect}/${summary.vocabularyTotal}</strong>
+          </div>
+          <div>
+            <span>Тем проверено</span>
+            <strong>${summary.sectionCount}</strong>
+          </div>
+        </div>
+
+        <section class="assessment-breakdown">
+          <h3>Грамматические темы</h3>
+          <div class="assessment-breakdown__grid">
+            ${renderAssessmentBreakdown(summary.grammarResults)}
+          </div>
+        </section>
+
+        <section class="assessment-breakdown">
+          <h3>Словарные темы</h3>
+          <div class="assessment-breakdown__grid">
+            ${renderAssessmentBreakdown(summary.vocabularyResults)}
+          </div>
+        </section>
+
+        <div class="result-card__actions">
+          <button class="primary-button" data-action="start-assessment">
+            Пройти проверочную ещё раз
+          </button>
+          <button class="secondary-button" data-action="back-to-menu">
+            Главное меню
+          </button>
+        </div>
+      </article>
+    </div>
+  `;
+}
+
 function renderResultView() {
   const section = getCurrentSection();
+
+  if (isAssessmentSection(section)) {
+    renderAssessmentResultView(section);
+    return;
+  }
+
   const progress = state.progress[section.id];
   const isVocabulary = isVocabularySection(section);
   const questionCount = getQuestionCount(section);
@@ -708,11 +1049,32 @@ function startSection(sectionId, forceRestart = false, options = {}) {
   window.scrollTo({ top: 0, behavior: fromHistory ? "auto" : "smooth" });
 }
 
+function startAssessment(options = {}) {
+  const { fromHistory = false } = options;
+  const section = createAssessmentSection();
+
+  applyFreshSectionState(section, "assessment");
+
+  if (!fromHistory) {
+    const currentHistoryState = window.history.state;
+
+    if (currentHistoryState?.view === "quiz") {
+      syncHistoryState(quizHistoryState(section.id), "replace");
+    } else {
+      syncHistoryState(quizHistoryState(section.id), "push");
+    }
+  }
+
+  render();
+  window.scrollTo({ top: 0, behavior: fromHistory ? "auto" : "smooth" });
+}
+
 function handleAnswer(optionIndex) {
   if (state.answered || state.completed) {
     return;
   }
 
+  const section = getCurrentSection();
   const question = getCurrentQuestion();
   const isCorrect = optionIndex === question.correctIndex;
 
@@ -724,6 +1086,14 @@ function handleAnswer(optionIndex) {
     state.correctAnswers += 1;
   }
 
+  state.answerHistory.push({
+    questionId: question.id,
+    sectionId: isAssessmentSection(section)
+      ? question.assessmentMeta.sectionId
+      : section.id,
+    correct: isCorrect,
+  });
+
   persistCurrentSession();
   renderQuizState();
 }
@@ -733,10 +1103,16 @@ function goToNextQuestion() {
     return;
   }
 
+  const section = getCurrentSection();
+
   if (state.questionIndex === state.questions.length - 1) {
     state.completed = true;
-    updateBestResult(state.activeSectionId);
-    clearSavedSession();
+
+    if (!isAssessmentSection(section)) {
+      updateBestResult(state.activeSectionId);
+      clearSavedSession();
+    }
+
     render();
     window.scrollTo({ top: 0, behavior: "smooth" });
     return;
@@ -785,6 +1161,11 @@ function backToMenu(fromHistory = false) {
 function handlePopState(event) {
   const nextState = event.state;
 
+  if (nextState?.view === "quiz" && nextState.sectionId === assessmentSectionId) {
+    startAssessment({ fromHistory: true });
+    return;
+  }
+
   if (nextState?.view === "quiz" && nextState.sectionId) {
     startSection(nextState.sectionId, false, { fromHistory: true });
     return;
@@ -826,6 +1207,11 @@ document.addEventListener("click", (event) => {
       behavior: "smooth",
       block: "start",
     });
+    return;
+  }
+
+  if (action === "start-assessment") {
+    startAssessment();
     return;
   }
 
